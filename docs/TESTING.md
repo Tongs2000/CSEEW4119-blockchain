@@ -185,4 +185,128 @@
     1. Corrupt local chain
     2. Wait for sync
   - **Expected Result**: Chain recovered from peers
-  - **Actual Result**: Chain restored successfully 
+  - **Actual Result**: Chain restored successfully
+
+## 6. Voting System Testing
+
+### 6.1 Voting Submission Test
+- **Test Case**: Submit valid vote
+  - **Steps**:
+    1. Submit a valid vote
+    2. Verify vote submission
+  - **Expected Result**: Vote submitted successfully
+  - **Actual Result**: Vote submitted successfully
+
+- **Test Case**: Submit duplicate vote
+  - **Steps**:
+    1. Submit the same vote again
+    2. Verify vote rejection
+  - **Expected Result**: Duplicate vote rejected
+  - **Actual Result**: Duplicate vote rejected
+
+- **Test Case**: Submit invalid vote
+  - **Steps**:
+    1. Submit an invalid vote
+    2. Verify vote rejection
+  - **Expected Result**: Invalid vote rejected
+  - **Actual Result**: Invalid vote rejected
+
+### 6.2 Voting Statistics Test
+- **Test Case**: Verify voting statistics
+  - **Steps**:
+    1. Submit multiple votes
+    2. Retrieve voting results
+    3. Verify statistics accuracy
+  - **Expected Result**: Voting results correctly counted
+  - **Actual Result**: Voting results counted correctly
+
+### 6.3 Voting Status Test
+- **Test Case**: Verify voting status
+  - **Steps**:
+    1. Submit a vote
+    2. Check vote status
+    3. Verify status information
+  - **Expected Result**: Status information accurate
+  - **Actual Result**: Status information accurate
+
+## 7. API Testing
+
+### 7.1 Interface Availability Test
+- **Test Case**: Verify all API interfaces
+  - **Steps**:
+    1. Test each interface
+    2. Verify response format
+    3. Check error handling
+  - **Expected Result**: All interfaces respond
+  - **Actual Result**: All interfaces respond
+
+### 7.2 Data Consistency Test
+- **Test Case**: Verify data consistency
+  - **Steps**:
+    1. Perform operations on different nodes
+    2. Check data synchronization
+    3. Verify final consistency
+  - **Expected Result**: Data correctly synchronized
+  - **Actual Result**: Data correctly synchronized
+
+## 8. Performance Testing
+
+### 8.1 Concurrent Voting Test
+- **Test Case**: Verify system concurrency
+  - **Steps**:
+    1. Simulate multiple concurrent votes
+    2. Monitor system response
+    3. Check data consistency
+  - **Expected Result**: System handles concurrency
+  - **Actual Result**: System handles concurrency
+
+### 8.2 Large-scale Data Test
+- **Test Case**: Verify system processing
+  - **Steps**:
+    1. Generate large voting data
+    2. Monitor system performance
+    3. Check resource usage
+  - **Expected Result**: System handles large data
+  - **Actual Result**: System handles large data
+
+## 9. Test Tools
+
+### 9.1 Test Scripts
+```bash
+# Run network test
+python tests/network_test.py
+
+# Run blockchain test
+python tests/blockchain_test.py
+
+# Run voting system test
+python tests/voting_test.py
+
+# Run API test
+python tests/api_test.py
+
+# Run performance test
+python tests/performance_test.py
+```
+
+### 9.2 Test Reports
+- Test results saved in `tests/results/` directory
+- Includes detailed logs and error information
+- Generates HTML format report
+
+## 10. Test Environment
+
+### 10.1 Hardware Requirements
+- CPU: 4 cores or more
+- Memory: 8GB or more
+- Storage: 100GB or more
+
+### 10.2 Software Requirements
+- Python 3.8+
+- Dependencies listed in requirements.txt
+- Test framework: pytest
+
+### 10.3 Network Requirements
+- Stable network connection
+- Enough bandwidth
+- Low latency 

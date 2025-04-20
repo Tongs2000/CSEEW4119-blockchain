@@ -1,106 +1,80 @@
-# Blockchain Implementation
+# Blockchain Voting System
 
-A simple blockchain implementation with proof of work, transaction validation, and peer-to-peer networking.
+A simplified peer-to-peer blockchain system with voting functionality.
 
 ## Features
 
-- Proof of Work mining
-- Transaction validation
-- Merkle tree for transaction verification
-- Peer-to-peer networking
-- Chain synchronization
-- Difficulty adjustment
-- Block editing and verification
+- **Blockchain Core**
+  - Proof of Work consensus
+  - Merkle tree for transaction verification
+  - Dynamic difficulty adjustment
+  - P2P network synchronization
+
+- **Voting System**
+  - Secure vote submission
+  - Real-time vote counting
+  - Voter participation tracking
+  - Vote statistics and analytics
+
+- **Network**
+  - Tracker-based peer discovery
+  - Automatic chain synchronization
+  - Heartbeat mechanism
+  - Fork resolution
 
 ## Project Structure
 
 ```
 .
 ├── src/
-│   ├── blockchain/
-│   │   ├── block.py      # Block implementation
-│   │   ├── chain.py      # Blockchain implementation
-│   ├── network/
-│   │   ├── client.py     # Client node implementation
-│   │   └── tracker.py    # Tracker server implementation
-│   └── utils/
-│       └── logger.py     # Logging utilities
-├── run.py                # Main entry point
-└── README.md
+│   ├── blockchain/     # Core blockchain implementation
+│   ├── network/        # Network and API implementation
+│   └── utils/          # Utility functions
+├── docs/              # Documentation
+├── logs/              # Log files
+└── tests/             # Test files
 ```
 
-## Setup
+## Installation
 
-1. Clone the repository
+1. Clone the repository:
+```bash
+git clone [repository-url]
+cd blockchain-voting-system
+```
+
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Network
+## Running the System
 
-### Start Tracker Server
+1. Start the tracker server:
 ```bash
-python run.py tracker --port 6000
+python src/network/tracker.py
 ```
 
-### Start Client Nodes
+2. Start client nodes (in separate terminals):
 ```bash
-# Start first client
-python run.py client --port 5001
-
-# Start second client
-python run.py client --port 5002
-
-# Start third client
-python run.py client --port 5003
+python src/network/client.py
 ```
 
-## API Endpoints
+## API Documentation
 
-### Client Node Endpoints
+See [API.md](docs/API.md) for detailed API documentation.
 
-- `POST /transaction`: Add a new transaction
-- `POST /mine`: Mine pending transactions
-- `GET /chain`: Get the current blockchain
-- `POST /edit_block`: Edit a block's transaction (for testing)
-- `GET /verify_block`: Verify block integrity and locate modified transactions
+## Testing
 
-### Tracker Server Endpoints
-
-- `POST /register`: Register a new client
-- `POST /heartbeat`: Update client status
-- `GET /peers`: Get list of active peers
-
-## Testing Block Editing and Verification
-
-1. Start the tracker and at least one client
-2. Add some transactions and mine a block
-3. Edit a block's transaction:
+Run the test suite:
 ```bash
-curl -X POST http://localhost:5001/edit_block \
-  -H "Content-Type: application/json" \
-  -d '{
-    "block_index": 1,
-    "transaction_index": 0,
-    "field": "amount",
-    "new_value": 1000
-  }'
+python -m pytest tests/
 ```
 
-4. Verify the block:
-```bash
-curl http://localhost:5001/verify_block?block_index=1
-```
+## Design
 
-The verification will show:
-- Whether the block hash is valid
-- Whether the Merkle root is valid
-- The current and stored Merkle roots
-- Indices of any modified transactions
+See [DESIGN.md](docs/DESIGN.md) for system design details.
 
-## Logging
+## License
 
-Logs are stored in the following directories:
-- Client logs: `logs/client/client_{port}_{timestamp}.log`
-- Tracker logs: `logs/tracker/tracker_{port}_{timestamp}.log`
+MIT License

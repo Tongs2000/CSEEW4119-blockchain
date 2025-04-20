@@ -1,167 +1,138 @@
-# Blockchain Implementation Design
+# Blockchain Voting System Design
 
-## 1. System Overview
+## System Overview
 
-### 1.1 Project Goals
-- Implement a peer-to-peer blockchain network
-- Demonstrate blockchain resilience to invalid transactions
-- Implement advanced features like Merkle tree and dynamic difficulty adjustment
-- Provide block editing and verification capabilities for testing
+The system consists of three main components:
+1. **Blockchain Core**: Handles block creation, validation, and chain management
+2. **Voting System**: Manages vote submission, counting, and verification
+3. **Network Layer**: Handles peer discovery and chain synchronization
 
-### 1.2 Network Structure
+## Blockchain Core
+
+### Block Structure
+```python
+class Block:
+    def __init__(self, index, transactions, previous_hash, nonce=0):
+        self.index = index
+        self.timestamp = time.time()
+        self.transactions = transactions
+        self.previous_hash = previous_hash
+        self.nonce = nonce
+        self.merkle_root = self.compute_merkle_root()
+        self.hash = self.calculate_hash()
 ```
-[Client 1] <----> [Tracker] <----> [Client 2] <----> [Client 3]
-    |                                    |                |
-    |                                    |                |
-    v                                    v                v
-[Blockchain]                        [Blockchain]     [Blockchain]
+
+### Key Features
+- **Proof of Work**: Dynamic difficulty adjustment based on network hash rate
+- **Merkle Tree**: Efficient transaction verification
+- **Chain Validation**: Full blockchain integrity checks
+- **Fork Resolution**: Longest valid chain rule
+
+## Voting System
+
+### Vote Structure
+```python
+class Vote:
+    def __init__(self, user_id, candidate, timestamp):
+        self.user_id = user_id
+        self.candidate = candidate
+        self.timestamp = timestamp
 ```
 
-## 2. Core Components
+### Key Features
+- **One Vote Per User**: Prevents double voting
+- **Real-time Counting**: Live vote statistics
+- **Vote Verification**: Transaction-based vote storage
+- **Audit Trail**: Complete voting history in blockchain
 
-### 2.1 Tracker Server
-- **Registration**: New clients register with the tracker
-- **Peer Discovery**: Maintains list of active peers
-- **Heartbeat Monitoring**: Tracks client health status (30-second intervals)
-- **Cleanup**: Removes inactive clients (60-second intervals)
+## Network Layer
 
-### 2.2 Client Node
-- **Blockchain Management**: Maintains local copy of blockchain
-- **Transaction Processing**: Handles new transactions
-- **Mining**: Creates new blocks through proof-of-work
-- **Network Communication**: Broadcasts new blocks to peers
-- **Synchronization**: Keeps blockchain in sync with peers (10-second intervals)
-- **Block Editing**: Provides interface for testing block modifications
-- **Integrity Verification**: Verifies block integrity using Merkle tree
+### Components
+1. **Tracker Server**
+   - Peer registration
+   - Status monitoring
+   - Network topology management
 
-### 2.3 Blockchain
-- **Blocks**: Contain transactions, timestamps, and proof-of-work
-- **Merkle Tree**: For transaction integrity verification
-- **Consensus**: Longest valid chain rule with work consideration
+2. **Client Nodes**
+   - Vote submission
+   - Chain synchronization
+   - Block mining
 
-## 3. Implementation Details
+### Communication Protocol
+- **Registration**: New nodes register with tracker
+- **Heartbeat**: Regular status updates
+- **Chain Sync**: Periodic blockchain updates
+- **Vote Broadcast**: New votes propagated to network
 
-### 3.1 P2P Network Implementation
-- **Tracker Protocol**:
-  - `/register`: Register new client
-  - `/unregister`: Remove client
-  - `/heartbeat`: Client status update
-  - `/peers`: Get list of active peers
+## Security Measures
 
-- **Client Protocol**:
-  - `/new_block`: Receive and validate new blocks
-  - `/transaction`: Add new transaction
-  - `/mine`: Create and broadcast new block
-  - `/chain`: Get current blockchain
-  - `/mining_params`: Configure mining parameters
-  - `/edit_block`: Edit block content (for testing)
-  - `/verify_block`: Verify block integrity
+1. **Blockchain Security**
+   - Proof of Work consensus
+   - Merkle tree verification
+   - Chain validation
 
-### 3.2 Blockchain Implementation
-- **Block Structure**:
-  ```python
-  {
-    "index": int,
-    "previous_hash": str,
-    "timestamp": int,
-    "transactions": list,
-    "merkle_root": str,
-    "nonce": int,
-    "hash": str
-  }
-  ```
+2. **Voting Security**
+   - User authentication
+   - Vote integrity checks
+   - Audit logging
 
-- **Mining Process**:
-  1. Sync with peers before mining
-  2. Collect pending transactions
-  3. Calculate Merkle root
-  4. Find valid nonce through proof-of-work
-  5. Create and broadcast new block
+3. **Network Security**
+   - Peer validation
+   - Message authentication
+   - Fork detection
 
-- **Difficulty Adjustment**:
-  - Target block time: Configurable (default 60 seconds)
-  - Adjustment interval: Configurable (default 10 blocks)
-  - Time tolerance: Configurable (default 0.1)
-  - Range: 1-10 difficulty levels
+## API Endpoints
 
-### 3.3 Block Editing and Verification
-- **Block Editing**:
-  - Modify specific transaction fields
-  - Replace entire transactions
-  - Update block hash and Merkle root
-  - Preserve original values for verification
+### Client Node API
+- `POST /vote`: Submit a new vote
+- `GET /votes`: Get current vote counts
+- `GET /vote_status`: Check user's voting status
+- `GET /chain`: Get blockchain
+- `POST /mine`: Mine new block
+- `GET /peers`: Get peer list
 
-- **Integrity Verification**:
-  - Block hash validation
-  - Merkle root verification
-  - Transaction integrity checks
-  - Modified transaction detection
+### Tracker API
+- `POST /register`: Register new node
+- `POST /heartbeat`: Update node status
+- `GET /nodes`: Get all nodes
 
-## 4. Security and Resilience
+## Data Flow
 
-### 4.1 Block Validation
-- **Hash Verification**: Ensure block hash matches content
-- **Merkle Tree Verification**: Validate transaction integrity
-- **Chain Validation**: Verify entire blockchain integrity
-- **Fork Resolution**: Select longest valid chain
+1. **Vote Submission**
+   ```
+   User -> Client Node -> Transaction Pool -> Mined Block -> Blockchain
+   ```
 
-### 4.2 Network Security
-- **Peer Authentication**: Validate peer connections
-- **Block Broadcasting**: Secure block propagation
-- **Chain Synchronization**: Safe chain updates
-- **Heartbeat Monitoring**: Track peer health
+2. **Chain Synchronization**
+   ```
+   Tracker -> Node List -> Chain Request -> Chain Response -> Validation
+   ```
 
-### 4.3 Testing Capabilities
-- **Block Editing**: Simulate malicious modifications
-- **Integrity Checks**: Verify detection of modifications
-- **Merkle Tree Verification**: Test transaction integrity
-- **Chain Validation**: Test blockchain resilience
+3. **Vote Counting**
+   ```
+   Blockchain -> Transaction Analysis -> Vote Aggregation -> Statistics
+   ```
 
-## 5. Testing and Verification
+## Error Handling
 
-### 5.1 Network Tests
-- Multiple client registration
-- Peer discovery and updates
-- Heartbeat monitoring
-- Cleanup of inactive peers
+1. **Network Errors**
+   - Connection timeouts
+   - Invalid messages
+   - Peer failures
 
-### 5.2 Blockchain Tests
-- Block creation and validation
-- Fork resolution
-- Chain synchronization
-- Merkle tree verification
+2. **Blockchain Errors**
+   - Invalid blocks
+   - Fork conflicts
+   - Chain validation failures
 
-### 5.3 Application Tests
-- Vote transaction processing
-- Block mining and broadcasting
-- Difficulty adjustment
-- Invalid transaction rejection
+3. **Voting Errors**
+   - Double voting attempts
+   - Invalid vote data
+   - Vote verification failures
 
-## 6. CLI Commands
+## Logging
 
-### 6.1 Client Commands
-- `add_tx`: Add new transaction
-- `mine`: Mine pending transactions
-- `list_peers`: Show connected peers
-- `show_chain`: Display blockchain
-- `set_params`: Configure mining parameters
-- `exit`: Shutdown client
-
-### 6.2 Mining Parameters
-- **Difficulty**: 1-10 (controls proof-of-work)
-- **Target Block Time**: Desired time between blocks
-- **Adjustment Interval**: Blocks between difficulty adjustments
-- **Time Tolerance**: Allowed deviation from target time
-
-## 7. Error Handling
-
-### 7.1 Network Errors
-- Connection timeouts
-- Invalid responses
-- Peer unavailability
-
-### 7.2 Validation Errors
-- Invalid block format
-- Invalid proof-of-work
-- Hash mismatches
-- Invalid transactions
+- **Client Logs**: `logs/client/client_{port}_{timestamp}.log`
+- **Tracker Logs**: `logs/tracker/tracker_{port}_{timestamp}.log`
+- **Log Levels**: DEBUG, INFO, WARNING, ERROR
+- **Log Rotation**: Daily rotation with size limit

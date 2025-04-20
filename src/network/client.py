@@ -3,6 +3,7 @@ from src.blockchain.chain import Blockchain
 from src.blockchain.block import Block
 import threading, requests, json, time, os
 from src.utils.logger import setup_logger
+from src.network.voting import setup_voting_routes
 
 app = Flask(__name__)
 blockchain = Blockchain()
@@ -254,6 +255,9 @@ def run_server():
     if not register_with_tracker():
         client_logger.error("Failed to register with tracker, exiting")
         return
+
+    # Setup voting routes
+    setup_voting_routes(app, blockchain, client_logger)
 
     # Start background threads
     threading.Thread(target=send_heartbeat, daemon=True).start()
