@@ -20,7 +20,6 @@ A simple blockchain implementation with proof of work, transaction validation, a
 │   ├── blockchain/
 │   │   ├── block.py      # Block implementation
 │   │   ├── chain.py      # Blockchain implementation
-│   │   └── transaction.py # Transaction implementation
 │   ├── network/
 │   │   ├── client.py     # Client node implementation
 │   │   └── tracker.py    # Tracker server implementation
