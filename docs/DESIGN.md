@@ -1,75 +1,167 @@
-# Blockchain Design Documentation
+# Blockchain Implementation Design
 
-## 1. Blockchain Design
+## 1. System Overview
 
-### 1.1 Block Structure
-- Each block contains:
-  - Index
-  - List of transactions
-  - Timestamp
-  - Previous block hash
-  - Current block hash
-  - Nonce (for mining)
-  - Difficulty level
+### 1.1 Project Goals
+- Implement a peer-to-peer blockchain network
+- Demonstrate blockchain resilience to invalid transactions
+- Implement advanced features like Merkle tree and dynamic difficulty adjustment
+- Provide block editing and verification capabilities for testing
 
-### 1.2 Mining Process
-- Proof of Work (PoW) algorithm
-- Difficulty adjusts based on network conditions
-- Mining reward system (optional)
+### 1.2 Network Structure
+```
+[Client 1] <----> [Tracker] <----> [Client 2] <----> [Client 3]
+    |                                    |                |
+    |                                    |                |
+    v                                    v                v
+[Blockchain]                        [Blockchain]     [Blockchain]
+```
 
-### 1.3 Transaction Validation
-- Digital signatures for transaction verification
-- Double-spending prevention
-- Transaction fee mechanism (optional)
+## 2. Core Components
 
-## 2. P2P Network Design
+### 2.1 Tracker Server
+- **Registration**: New clients register with the tracker
+- **Peer Discovery**: Maintains list of active peers
+- **Heartbeat Monitoring**: Tracks client health status (30-second intervals)
+- **Cleanup**: Removes inactive clients (60-second intervals)
 
-### 2.1 Tracker
-- Maintains list of active peers
-- Handles peer registration/unregistration
-- Provides peer discovery service
-- Implements peer health checks
+### 2.2 Client Node
+- **Blockchain Management**: Maintains local copy of blockchain
+- **Transaction Processing**: Handles new transactions
+- **Mining**: Creates new blocks through proof-of-work
+- **Network Communication**: Broadcasts new blocks to peers
+- **Synchronization**: Keeps blockchain in sync with peers (10-second intervals)
+- **Block Editing**: Provides interface for testing block modifications
+- **Integrity Verification**: Verifies block integrity using Merkle tree
 
-### 2.2 Peer Protocol
-- Peer discovery and connection
-- Block propagation
-- Chain synchronization
+### 2.3 Blockchain
+- **Blocks**: Contain transactions, timestamps, and proof-of-work
+- **Merkle Tree**: For transaction integrity verification
+- **Consensus**: Longest valid chain rule with work consideration
+
+## 3. Implementation Details
+
+### 3.1 P2P Network Implementation
+- **Tracker Protocol**:
+  - `/register`: Register new client
+  - `/unregister`: Remove client
+  - `/heartbeat`: Client status update
+  - `/peers`: Get list of active peers
+
+- **Client Protocol**:
+  - `/new_block`: Receive and validate new blocks
+  - `/transaction`: Add new transaction
+  - `/mine`: Create and broadcast new block
+  - `/chain`: Get current blockchain
+  - `/mining_params`: Configure mining parameters
+  - `/edit_block`: Edit block content (for testing)
+  - `/verify_block`: Verify block integrity
+
+### 3.2 Blockchain Implementation
+- **Block Structure**:
+  ```python
+  {
+    "index": int,
+    "previous_hash": str,
+    "timestamp": int,
+    "transactions": list,
+    "merkle_root": str,
+    "nonce": int,
+    "hash": str
+  }
+  ```
+
+- **Mining Process**:
+  1. Sync with peers before mining
+  2. Collect pending transactions
+  3. Calculate Merkle root
+  4. Find valid nonce through proof-of-work
+  5. Create and broadcast new block
+
+- **Difficulty Adjustment**:
+  - Target block time: Configurable (default 60 seconds)
+  - Adjustment interval: Configurable (default 10 blocks)
+  - Time tolerance: Configurable (default 0.1)
+  - Range: 1-10 difficulty levels
+
+### 3.3 Block Editing and Verification
+- **Block Editing**:
+  - Modify specific transaction fields
+  - Replace entire transactions
+  - Update block hash and Merkle root
+  - Preserve original values for verification
+
+- **Integrity Verification**:
+  - Block hash validation
+  - Merkle root verification
+  - Transaction integrity checks
+  - Modified transaction detection
+
+## 4. Security and Resilience
+
+### 4.1 Block Validation
+- **Hash Verification**: Ensure block hash matches content
+- **Merkle Tree Verification**: Validate transaction integrity
+- **Chain Validation**: Verify entire blockchain integrity
+- **Fork Resolution**: Select longest valid chain
+
+### 4.2 Network Security
+- **Peer Authentication**: Validate peer connections
+- **Block Broadcasting**: Secure block propagation
+- **Chain Synchronization**: Safe chain updates
+- **Heartbeat Monitoring**: Track peer health
+
+### 4.3 Testing Capabilities
+- **Block Editing**: Simulate malicious modifications
+- **Integrity Checks**: Verify detection of modifications
+- **Merkle Tree Verification**: Test transaction integrity
+- **Chain Validation**: Test blockchain resilience
+
+## 5. Testing and Verification
+
+### 5.1 Network Tests
+- Multiple client registration
+- Peer discovery and updates
+- Heartbeat monitoring
+- Cleanup of inactive peers
+
+### 5.2 Blockchain Tests
+- Block creation and validation
 - Fork resolution
-- Network partitioning handling
+- Chain synchronization
+- Merkle tree verification
 
-### 2.3 Communication Protocol
-- REST API for peer-to-peer communication
-- JSON message format
-- Error handling and retry mechanisms
+### 5.3 Application Tests
+- Vote transaction processing
+- Block mining and broadcasting
+- Difficulty adjustment
+- Invalid transaction rejection
 
-## 3. Demo Application Design
+## 6. CLI Commands
 
-### 3.1 Voting System
-- Secure vote casting
-- Vote counting and verification
-- Prevention of double voting
-- Real-time results display
+### 6.1 Client Commands
+- `add_tx`: Add new transaction
+- `mine`: Mine pending transactions
+- `list_peers`: Show connected peers
+- `show_chain`: Display blockchain
+- `set_params`: Configure mining parameters
+- `exit`: Shutdown client
 
-### 3.2 Security Features
-- Voter authentication
-- Vote encryption
-- Audit trail
-- Tamper detection
+### 6.2 Mining Parameters
+- **Difficulty**: 1-10 (controls proof-of-work)
+- **Target Block Time**: Desired time between blocks
+- **Adjustment Interval**: Blocks between difficulty adjustments
+- **Time Tolerance**: Allowed deviation from target time
 
-## 4. Additional Features
+## 7. Error Handling
 
-### 4.1 Dynamic Difficulty Adjustment
-- Network hash rate monitoring
-- Automatic difficulty adjustment
-- Mining reward scaling
+### 7.1 Network Errors
+- Connection timeouts
+- Invalid responses
+- Peer unavailability
 
-### 4.2 Merkle Tree Implementation
-- Transaction verification optimization
-- Block header optimization
-- Light client support
-
-### 4.3 GUI Interface
-- Web-based interface
-- Real-time blockchain visualization
-- Voting dashboard
-- Network status monitoring 
+### 7.2 Validation Errors
+- Invalid block format
+- Invalid proof-of-work
+- Hash mismatches
+- Invalid transactions

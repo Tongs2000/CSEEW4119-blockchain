@@ -4,14 +4,11 @@ import requests
 import os
 from src.blockchain.chain import Blockchain
 
-# Configuration
 HOST = 'localhost'
-PORT = int(os.getenv('PORT', 5001))  # 从环境变量读取端口，默认5001
+PORT = int(os.getenv('PORT', 5001))
 BASE_URL = f'http://{HOST}:{PORT}'
 TRACKER_URL = 'http://localhost:6000'
 HEARTBEAT_INTERVAL = 30
-
-# Utility functions
 
 def register_and_start_heartbeat():
     """Register this demo with tracker and start sending heartbeats."""
@@ -88,16 +85,8 @@ def main():
     for voter, candidate in votes:
         send_vote(voter, candidate)
 
-    # Give the client some time to collect transactions
-    time.sleep(2)
-
-    # Trigger mining
     trigger_mine()
 
-    # Allow time for block broadcast
-    time.sleep(2)
-
-    # Tally votes
     tally_votes()
 
 if __name__ == '__main__':

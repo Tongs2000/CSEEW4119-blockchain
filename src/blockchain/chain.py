@@ -3,20 +3,28 @@ from .block import Block
 import time
 
 class Blockchain:
+    """
+    Blockchain class managing the chain of blocks.
+    Handles block creation, validation, and difficulty adjustment.
+    """
+    
     def __init__(self):
-        self.chain: List[Block] = []
-        self.pending_transactions: List[Dict[str, Any]] = []
-        self.difficulty = 4  # 初始难度
-        self.target_block_time = 10  # 目标区块生成时间（秒）
-        self.block_times = []  # 记录最近区块的生成时间
-        self.adjustment_interval = 10  # 每10个区块调整一次难度
-        self.time_tolerance = 0.1  # 误差限幅（10%）
-        
-        # 创建创世块
+        """
+        Initialize blockchain with genesis block and default parameters.
+        """
+        self.chain = []
+        self.pending_transactions = []
+        self.difficulty = 4
+        self.target_block_time = 10
+        self.block_times = []
+        self.adjustment_interval = 10
+        self.time_tolerance = 0.1
         self.create_genesis_block()
 
     def create_genesis_block(self) -> None:
-        # Use fixed timestamp for deterministic genesis across all nodes
+        """
+        Create and add the genesis block to the chain.
+        """
         genesis_block = Block(
             index=0,
             transactions=[],
@@ -28,32 +36,50 @@ class Blockchain:
         self.chain.append(genesis_block)
 
     def get_latest_block(self) -> Block:
+        """
+        Get the most recent block in the chain.
+        
+        Returns:
+            Latest block in the chain
+        """
         return self.chain[-1]
 
     def add_transaction(self, transaction: Dict[str, Any]) -> None:
+        """
+        Add a new transaction to pending transactions.
+        
+        Args:
+            transaction: Transaction data to add
+        """
         self.pending_transactions.append(transaction)
 
-    def adjust_difficulty(self):
-        """动态调整挖矿难度"""
+    def adjust_difficulty(self) -> None:
+        """
+        Adjust mining difficulty based on recent block times.
+        Updates difficulty if average block time deviates from target.
+        """
         if len(self.block_times) < self.adjustment_interval:
             return
             
-        # 计算最近N个区块的平均生成时间
         avg_time = sum(self.block_times[-self.adjustment_interval:]) / self.adjustment_interval
         
-        # 如果平均时间大于目标时间，降低难度
         if avg_time > self.target_block_time * (1 + self.time_tolerance):
             self.difficulty = max(1, self.difficulty - 1)
-            print(f"Difficulty decreased to {self.difficulty}")
-        # 如果平均时间小于目标时间，增加难度
         elif avg_time < self.target_block_time * (1 - self.time_tolerance):
             self.difficulty += 1
-            print(f"Difficulty increased to {self.difficulty}")
             
-        # 清空时间记录，开始新的调整周期
         self.block_times = []
 
     def mine_pending_transactions(self) -> Block:
+        """
+        Mine pending transactions into a new block.
+        
+        Returns:
+            Newly mined block
+            
+        Raises:
+            ValueError: If no pending transactions
+        """
         if not self.pending_transactions:
             raise ValueError("No pending transactions to mine")
 
@@ -61,22 +87,15 @@ class Blockchain:
         new_block = Block(
             index=latest_block.index + 1,
             transactions=self.pending_transactions,
-            timestamp=time.time(),  # use current time for new blocks
+            timestamp=time.time(),
             previous_hash=latest_block.hash,
             difficulty=self.difficulty
         )
 
-        # 记录挖矿开始时间
         start_time = time.time()
-        
-        # 挖矿
         new_block.mine_block()
-        
-        # 记录区块生成时间
         block_time = time.time() - start_time
         self.block_times.append(block_time)
-        
-        # 调整难度
         self.adjust_difficulty()
 
         self.chain.append(new_block)
@@ -84,6 +103,12 @@ class Blockchain:
         return new_block
 
     def is_chain_valid(self) -> bool:
+        """
+        Validate the entire blockchain.
+        
+        Returns:
+            True if chain is valid, False otherwise
+        """
         for i in range(1, len(self.chain)):
             current_block = self.chain[i]
             previous_block = self.chain[i-1]
@@ -94,14 +119,28 @@ class Blockchain:
             if current_block.previous_hash != previous_block.hash:
                 return False
 
-            # 验证工作量证明
             prefix = '0' * self.difficulty
             if not current_block.hash.startswith(prefix):
                 return False
 
         return True
 
+    def calculate_work(self) -> int:
+        """
+        Calculate the total work done in the blockchain.
+        
+        Returns:
+            Total work done in the blockchain
+        """
+        return sum(int(block.hash, 16) for block in self.chain)
+
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert blockchain to dictionary format.
+        
+        Returns:
+            Dictionary containing blockchain data
+        """
         return {
             "chain": [block.to_dict() for block in self.chain],
             "pending_transactions": self.pending_transactions,
@@ -113,12 +152,21 @@ class Blockchain:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Blockchain':
-        blockchain = cls()
-        # Overwrite the auto-created genesis and subsequent blocks
+        """
+        Create blockchain instance from dictionary.
+        
+        Args:
+            data: Dictionary containing blockchain data
+            
+        Returns:
+            Blockchain instance
+        """
+        blockchain = object.__new__(cls)
         blockchain.chain = [Block.from_dict(block_data) for block_data in data['chain']]
         blockchain.pending_transactions = data['pending_transactions']
-        blockchain.difficulty = data['difficulty']
-        blockchain.target_block_time = data['target_block_time']
-        blockchain.adjustment_interval = data['adjustment_interval']
-        blockchain.time_tolerance = data['time_tolerance']
+        blockchain.difficulty = data.get('difficulty', 4)
+        blockchain.target_block_time = data.get('target_block_time', 10)
+        blockchain.adjustment_interval = data.get('adjustment_interval', 10)
+        blockchain.time_tolerance = data.get('time_tolerance', 0.1)
+        blockchain.block_times = []
         return blockchain

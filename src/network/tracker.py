@@ -2,52 +2,92 @@ from flask import Flask, jsonify, request
 import threading
 import time
 from typing import Dict
+import os
+from src.utils.logger import setup_logger
 
 app = Flask(__name__)
 lock = threading.Lock()
 # Store peer address -> last heartbeat timestamp
 peers_heartbeat: Dict[str, float] = {}
-# Heartbeat timeout in seconds (e.g., 120s)
+# Heartbeat timeout in seconds
 HEARTBEAT_TIMEOUT = 120
-CLEANUP_INTERVAL = 60  # seconds
+# Cleanup interval in seconds
+CLEANUP_INTERVAL = 60
+HOST = 'localhost'
+
+def get_port():
+    """Get port from environment variable or default to 6000"""
+    return int(os.getenv('PORT', 6000))
+
+def get_base_url():
+    """Get base URL using current port"""
+    return f'http://{HOST}:{get_port()}'
+
+# Create logger with port information
+tracker_logger = None
 
 @app.route('/register', methods=['POST'])
 def register_peer():
+    """
+    Register new peer with tracker.
+    
+    Returns:
+        JSON response with peer list
+    """
     data = request.get_json() or {}
     address = data.get('address')
     if not address:
+        tracker_logger.error("Invalid registration data: address is required")
         return jsonify({'status': 'error', 'message': 'address is required'}), 400
 
     with lock:
         peers_heartbeat[address] = time.time()
         peers = list(peers_heartbeat.keys())
+        tracker_logger.info(f"New peer registered: {address}")
 
     return jsonify({'status': 'success', 'peers': peers}), 200
 
 @app.route('/unregister', methods=['POST'])
 def unregister_peer():
+    """
+    Unregister peer from tracker.
+    
+    Returns:
+        JSON response with status
+    """
     data = request.get_json() or {}
     address = data.get('address')
     if not address:
+        tracker_logger.error("Invalid unregistration data: address is required")
         return jsonify({'status': 'error', 'message': 'address is required'}), 400
 
     with lock:
         peers_heartbeat.pop(address, None)
         peers = list(peers_heartbeat.keys())
+        tracker_logger.info(f"Peer unregistered: {address}")
 
     return jsonify({'status': 'success', 'peers': peers}), 200
 
 @app.route('/heartbeat', methods=['POST'])
 def heartbeat():
+    """
+    Update peer's last seen timestamp.
+    
+    Returns:
+        JSON response with peer list
+    """
     data = request.get_json() or {}
     address = data.get('address')
     if not address:
+        tracker_logger.error("Invalid heartbeat data: address is required")
         return jsonify({'status': 'error', 'message': 'address is required'}), 400
 
     with lock:
         if address in peers_heartbeat:
             peers_heartbeat[address] = time.time()
+            tracker_logger.debug(f"Heartbeat received from {address}")
         else:
+            tracker_logger.warning(f"Unknown peer attempted heartbeat: {address}")
             return jsonify({'status': 'error', 'message': 'address not registered'}), 400
         peers = list(peers_heartbeat.keys())
 
@@ -57,10 +97,13 @@ def heartbeat():
 def get_peers():
     with lock:
         peers = list(peers_heartbeat.keys())
+        tracker_logger.debug(f"Returning {len(peers)} active peers")
     return jsonify({'status': 'success', 'peers': peers}), 200
 
-
 def cleanup_inactive_peers():
+    """
+    Periodically remove inactive peers.
+    """
     while True:
         time.sleep(CLEANUP_INTERVAL)
         now = time.time()
@@ -71,9 +114,27 @@ def cleanup_inactive_peers():
                     peers_heartbeat.pop(address, None)
                     removed.append(address)
         if removed:
+            tracker_logger.info(f"Cleaned up inactive peers: {removed}")
             print(f"Cleaned up inactive peers: {removed}")
 
-if __name__ == '__main__':
+def run_server():
+    """
+    Start tracker server.
+    """
+    tracker_logger.info(f"Starting tracker server on {HOST}:{get_port()}")
+    app.run(host='0.0.0.0', port=get_port())
+
+def main():
+    """
+    Main function to start tracker.
+    """
+    global tracker_logger
+    tracker_logger = setup_logger('tracker', 'logs/tracker', port=get_port())
+    
     cleanup_thread = threading.Thread(target=cleanup_inactive_peers, daemon=True)
     cleanup_thread.start()
-    app.run(host='0.0.0.0', port=6000)
+    
+    run_server()
+
+if __name__ == '__main__':
+    main()
