@@ -1,56 +1,79 @@
 from flask import Flask, jsonify, request
 import threading
 import time
-from typing import Set, Dict, Any
+from typing import Dict
 
 app = Flask(__name__)
-peers: Set[str] = set()  # Store peer addresses
 lock = threading.Lock()
+# Store peer address -> last heartbeat timestamp
+peers_heartbeat: Dict[str, float] = {}
+# Heartbeat timeout in seconds (e.g., 120s)
+HEARTBEAT_TIMEOUT = 120
+CLEANUP_INTERVAL = 60  # seconds
 
 @app.route('/register', methods=['POST'])
 def register_peer():
-    data = request.get_json()
-    peer_address = data.get('address')
-    
+    data = request.get_json() or {}
+    address = data.get('address')
+    if not address:
+        return jsonify({'status': 'error', 'message': 'address is required'}), 400
+
     with lock:
-        peers.add(peer_address)
-    
-    return jsonify({
-        'status': 'success',
-        'message': f'Peer {peer_address} registered successfully'
-    })
+        peers_heartbeat[address] = time.time()
+        peers = list(peers_heartbeat.keys())
+
+    return jsonify({'status': 'success', 'peers': peers}), 200
 
 @app.route('/unregister', methods=['POST'])
 def unregister_peer():
-    data = request.get_json()
-    peer_address = data.get('address')
-    
+    data = request.get_json() or {}
+    address = data.get('address')
+    if not address:
+        return jsonify({'status': 'error', 'message': 'address is required'}), 400
+
     with lock:
-        peers.discard(peer_address)
-    
-    return jsonify({
-        'status': 'success',
-        'message': f'Peer {peer_address} unregistered successfully'
-    })
+        peers_heartbeat.pop(address, None)
+        peers = list(peers_heartbeat.keys())
+
+    return jsonify({'status': 'success', 'peers': peers}), 200
+
+@app.route('/heartbeat', methods=['POST'])
+def heartbeat():
+    data = request.get_json() or {}
+    address = data.get('address')
+    if not address:
+        return jsonify({'status': 'error', 'message': 'address is required'}), 400
+
+    with lock:
+        if address in peers_heartbeat:
+            peers_heartbeat[address] = time.time()
+        else:
+            return jsonify({'status': 'error', 'message': 'address not registered'}), 400
+        peers = list(peers_heartbeat.keys())
+
+    return jsonify({'status': 'success', 'peers': peers}), 200
 
 @app.route('/peers', methods=['GET'])
 def get_peers():
     with lock:
-        return jsonify({
-            'peers': list(peers)
-        })
+        peers = list(peers_heartbeat.keys())
+    return jsonify({'status': 'success', 'peers': peers}), 200
+
 
 def cleanup_inactive_peers():
-    """Periodically check and remove inactive peers"""
     while True:
-        time.sleep(60)  # Check every minute
-        # Implementation of peer activity check would go here
-        pass
+        time.sleep(CLEANUP_INTERVAL)
+        now = time.time()
+        removed = []
+        with lock:
+            for address, ts in list(peers_heartbeat.items()):
+                if now - ts > HEARTBEAT_TIMEOUT:
+                    peers_heartbeat.pop(address, None)
+                    removed.append(address)
+        if removed:
+            print(f"Cleaned up inactive peers: {removed}")
 
 if __name__ == '__main__':
-    # Start cleanup thread
     cleanup_thread = threading.Thread(target=cleanup_inactive_peers, daemon=True)
     cleanup_thread.start()
-    
-    # Start Flask server
-    app.run(host='0.0.0.0', port=5000) 
+    app.run(host='0.0.0.0', port=6000)
