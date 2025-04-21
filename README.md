@@ -32,7 +32,6 @@ A simplified peer-to-peer blockchain system with voting functionality.
 │   └── utils/          # Utility functions
 ├── docs/              # Documentation
 ├── logs/              # Log files
-└── tests/             # Test files
 ```
 
 ## Installation
@@ -52,12 +51,18 @@ pip install -r requirements.txt
 
 1. Start the tracker server:
 ```bash
-python src/network/tracker.py
+python src/network/tracker.py --port 6000
 ```
 
 2. Start client nodes (in separate terminals):
 ```bash
-python src/network/client.py
+python src/network/client.py --port 5001
+```
+```bash
+python src/network/client.py --port 5002
+```
+```bash
+python src/network/client.py --port 5003
 ```
 
 ## API Documentation
