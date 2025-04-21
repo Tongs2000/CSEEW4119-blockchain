@@ -69,12 +69,6 @@ python src/network/client.py --port 5003
 
 See [API.md](docs/API.md) for detailed API documentation.
 
-## Testing
-
-Run the test suite:
-```bash
-python -m pytest tests/
-```
 
 ## Design
 
