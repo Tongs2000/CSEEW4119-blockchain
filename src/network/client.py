@@ -4,6 +4,7 @@ from src.blockchain.block import Block
 import threading, requests, json, time, os
 from src.utils.logger import setup_logger
 from src.network.voting import setup_voting_routes
+from typing import List, Dict, Any
 
 app = Flask(__name__)
 blockchain = Blockchain()
@@ -30,6 +31,52 @@ mining_params = {
 
 # Create logger with port information
 client_logger = None
+
+def verify_with_peers(blockchain: Blockchain, index: int, peers: List[str]) -> Dict[str, Any]:
+    """
+    Verify a block with all peers in the network.
+    
+    Args:
+        blockchain: Local blockchain instance
+        index: Index of block to verify
+        peers: List of peer URLs
+        
+    Returns:
+        Dict containing verification results from all peers
+    """
+    if index >= len(blockchain.chain):
+        return {'error': 'Block index out of range'}
+        
+    block = blockchain.chain[index]
+    results = {}
+    
+    for peer in peers:
+        if peer == get_base_url():
+            continue
+        try:
+            # Get block from peer
+            resp = requests.get(f"{peer}/chain", timeout=5)
+            peer_chain = Blockchain.from_dict(resp.json())
+            
+            if index >= len(peer_chain.chain):
+                results[peer] = {'error': 'Block not found on peer'}
+                continue
+                
+            peer_block = peer_chain.chain[index]
+            
+            # Compare block hashes
+            results[peer] = {
+                'hash_match': block.hash == peer_block.hash,
+                'previous_hash_match': block.previous_hash == peer_block.previous_hash,
+                'merkle_root_match': block.merkle_root == peer_block.merkle_root,
+                'difficulty_match': block.difficulty == peer_block.difficulty,
+                'transactions_match': block.transactions == peer_block.transactions
+            }
+            
+        except Exception as e:
+            results[peer] = {'error': str(e)}
+            
+    return results
 
 @app.route('/new_block', methods=['POST'])
 def receive_block():
@@ -425,13 +472,13 @@ def edit_block():
 @app.route('/verify_block', methods=['GET'])
 def verify_block():
     """
-    Verify block integrity using Merkle tree and locate modified transactions.
+    Verify block integrity with all peers.
     
     Query parameters:
     - block_index: int (optional, defaults to latest block)
     
     Returns:
-        JSON response with verification results and modified transaction indices
+        JSON response with verification results from all peers
     """
     block_index = request.args.get('block_index', type=int)
     if block_index is None:
@@ -440,19 +487,18 @@ def verify_block():
     if block_index >= len(blockchain.chain):
         return jsonify({'status': 'error', 'message': 'Block index out of range'}), 400
         
-    block = blockchain.chain[block_index]
+    # Verify with all peers
+    peer_results = verify_with_peers(blockchain, block_index, list(peers))
     
-    verification = block.verify_integrity()
+    # Local verification
+    block = blockchain.chain[block_index]
+    local_verification = block.verify_self()
     
     return jsonify({
         'status': 'success',
         'block_index': block_index,
-        'is_hash_valid': verification['is_hash_valid'],
-        'is_merkle_valid': verification['is_merkle_valid'],
-        'current_merkle_root': verification['current_merkle_root'],
-        'stored_merkle_root': block.merkle_root,
-        'modified_transaction_indices': verification['modified_indices'],
-        'block': block.to_dict()
+        'local_verification': local_verification,
+        'peer_verification': peer_results
     }), 200
 
 def main():

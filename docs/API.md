@@ -109,17 +109,15 @@
 ```json
 {
     "status": "success",
-    "message": "新区块已创建",
-    "data": {
-        "block": {
-            "index": 2,
-            "timestamp": 1621234569,
-            "transactions": [...],
-            "previous_hash": "1111...",
-            "hash": "2222...",
-            "merkle_root": "2222...",
-            "nonce": 456
-        }
+    "block": {
+        "index": 2,
+        "transactions": [...],
+        "timestamp": 1621234569,
+        "previous_hash": "1111...",
+        "hash": "2222...",
+        "nonce": 456,
+        "difficulty": 2,
+        "merkle_root": "2222..."
     }
 }
 ```
@@ -167,22 +165,40 @@
 ```json
 {
     "status": "success",
-    "data": {
-        "block_index": 1,
-        "is_hash_valid": false,
-        "is_merkle_valid": false,
-        "current_merkle_root": "4444...",
-        "stored_merkle_root": "3333...",
-        "modified_transaction_indices": [0],
-        "block": {
-            "index": 1,
-            "transactions": [...],
-            "hash": "3333...",
-            "merkle_root": "3333..."
+    "block_index": 1,
+    "local_verification": {
+        "expected_hash": "预期哈希值",
+        "expected_merkle_root": "预期Merkle根",
+        "hash_ok": false,
+        "merkle_ok": false
+    },
+    "peer_verification": {
+        "节点URL": {
+            "hash_match": false,
+            "previous_hash_match": false,
+            "merkle_root_match": false,
+            "difficulty_match": false,
+            "transactions_match": false
         }
     }
 }
 ```
+- **验证结果说明**：
+  - `local_verification`：本地验证结果
+    - `expected_hash`：根据区块内容计算出的预期哈希值
+    - `expected_merkle_root`：根据交易计算出的预期Merkle根
+    - `hash_ok`：区块哈希是否与预期一致
+    - `merkle_ok`：Merkle根是否与预期一致
+  - `peer_verification`：与各对等节点的比较结果
+    - `hash_match`：区块哈希是否匹配
+    - `previous_hash_match`：前一个区块哈希是否匹配
+    - `merkle_root_match`：Merkle根是否匹配
+    - `difficulty_match`：挖矿难度是否匹配
+    - `transactions_match`：交易内容是否匹配
+  - **重要说明**：
+    - 任何验证结果为 `false` 都表示区块可能被篡改
+    - 需要同时检查本地验证和对等节点验证的结果
+    - 如果发现不一致，建议重新同步区块链
 
 ### 6. 获取挖矿参数
 - **接口**：`GET /mining_params`
@@ -240,7 +256,7 @@
 ```json
 {
     "status": "success",
-    "message": "投票已提交",
+    "message": "Vote submitted successfully",
     "data": {
         "transaction": {
             "sender": "user123",
@@ -250,6 +266,10 @@
     }
 }
 ```
+- **重要说明**：
+  - 投票提交后，交易会进入待处理池
+  - 必须调用 `/mine` 接口进行挖矿，投票才会被记录到区块链中
+  - 只有被记录到区块链中的投票才会被计入统计结果
 
 ### 9. 获取投票结果
 - **接口**：`GET /votes`
@@ -317,8 +337,10 @@
 4. 区块索引从 0 开始
 5. 交易索引从 0 开始
 6. 每个用户只能投一次票
-7. 投票结果会实时更新到区块链中
-8. 投票状态可以通过区块链验证
+7. 投票后必须进行挖矿才能生效
+8. 投票结果会实时更新到区块链中
+9. 投票状态可以通过区块链验证
+10. 验证接口返回的任何 `false` 值都表示可能存在篡改
 
 ## 前端页面设计建议
 
@@ -373,7 +395,7 @@
 
 ## 注意事项
 
-9. 前端应实现优雅降级，在网络延迟较高时仍能保持基本功能
-10. 建议使用响应式设计，适配不同设备
-11. 重要操作（如投票）需要用户确认
-12. 错误提示应清晰明确，包含解决方案建议 
+11. 前端应实现优雅降级，在网络延迟较高时仍能保持基本功能
+12. 建议使用响应式设计，适配不同设备
+13. 重要操作（如投票）需要用户确认
+14. 错误提示应清晰明确，包含解决方案建议 

@@ -124,6 +124,33 @@ class Blockchain:
                 return False
 
         return True
+    
+    def verify_linkage(self, index: int) -> Dict[str, Any]:
+        """
+        Verify the linkage of block at the given index:
+        - previous_link: True if this block’s previous_hash matches the prior block’s hash,
+                        False if it does not, or None if this is the genesis block
+        - next_link: True if the next block’s previous_hash matches this block’s hash,
+                    False if it does not, or None if this is the chain tip
+        Returns a dict with 'previous_link' and 'next_link'.
+        """
+        prev_ok = None
+        next_ok = None
+
+        # Check link to previous block
+        if index > 0:
+            prev_ok = (self.chain[index].previous_hash
+                    == self.chain[index-1].hash)
+
+        # Check link to next block
+        if index < len(self.chain) - 1:
+            next_ok = (self.chain[index+1].previous_hash
+                    == self.chain[index].hash)
+
+        return {
+            'previous_link': prev_ok,
+            'next_link': next_ok
+        }
 
     def calculate_work(self) -> int:
         """

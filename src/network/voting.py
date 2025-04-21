@@ -1,5 +1,5 @@
 import time
-from flask import jsonify
+from flask import jsonify, request
 
 class Vote:
     def __init__(self, voter, candidate):
@@ -99,7 +99,8 @@ def setup_voting_routes(app, blockchain, client_logger):
             vote_counts = {}
             for block in blockchain.chain:
                 for transaction in block.transactions:
-                    if transaction['amount'] == 1:
+                    # Only count transactions with amount=1
+                    if transaction.get('amount') == 1:
                         candidate = transaction['recipient']
                         vote_counts[candidate] = vote_counts.get(candidate, 0) + 1
 

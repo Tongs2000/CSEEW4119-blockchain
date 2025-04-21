@@ -130,48 +130,26 @@ class Block:
         
         return original_tx, original_merkle
 
-    def verify_integrity(self) -> dict:
+    def verify_self(self) -> Dict[str, Any]:
         """
-        Verify block integrity using Merkle tree and locate modified transactions.
-        
-        Returns:
-            dict: Verification results including:
-                - is_hash_valid: bool
-                - is_merkle_valid: bool
-                - current_merkle_root: str
-                - modified_indices: list of int
+        Verify the internal integrity of this block:
+        - Check that merkle_root matches the hash of transactions
+        - Check that hash matches the block header (including merkle_root)
+        Returns a dict containing:
+        - merkle_ok: whether the stored merkle_root is correct
+        - hash_ok: whether the stored hash is correct
+        - expected_merkle_root: the merkle root recomputed from transactions
+        - expected_hash: the hash recomputed from block header
         """
-        # Verify block hash
-        is_hash_valid = self.hash == self.calculate_hash()
-        
-        # Verify Merkle tree
-        tx_hashes = [
-            hashlib.sha256(json.dumps(tx, sort_keys=True).encode()).hexdigest()
-            for tx in self.transactions
-        ]
-        current_merkle = compute_merkle_root(tx_hashes)
-        is_merkle_valid = current_merkle == self.merkle_root
-        
-        # If Merkle root is invalid, find modified transactions
-        modified_indices = []
-        if not is_merkle_valid:
-            # Compare each transaction's hash with original
-            for i, tx in enumerate(self.transactions):
-                tx_hash = hashlib.sha256(json.dumps(tx, sort_keys=True).encode()).hexdigest()
-                # Rebuild Merkle tree without this transaction
-                other_hashes = tx_hashes[:i] + tx_hashes[i+1:]
-                other_merkle = compute_merkle_root(other_hashes)
-                # If removing this transaction makes Merkle root valid, it's modified
-                if other_merkle == self.merkle_root:
-                    modified_indices.append(i)
-        
+        expected_merkle = self.compute_merkle_root()
+        expected_hash   = self.calculate_hash()
         return {
-            'is_hash_valid': is_hash_valid,
-            'is_merkle_valid': is_merkle_valid,
-            'current_merkle_root': current_merkle,
-            'modified_indices': modified_indices
+            'merkle_ok': self.merkle_root == expected_merkle,
+            'hash_ok':   self.hash == expected_hash,
+            'expected_merkle_root': expected_merkle,
+            'expected_hash': expected_hash
         }
-
+    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert block to dictionary format.

@@ -136,3 +136,30 @@ class Vote:
 - **Tracker Logs**: `logs/tracker/tracker_{port}_{timestamp}.log`
 - **Log Levels**: DEBUG, INFO, WARNING, ERROR
 - **Log Rotation**: Daily rotation with size limit
+
+## Verification Strategy
+
+### 1. Block Verification
+- **Local Verification**
+  - Verify block hash against calculated hash
+  - Verify Merkle root against transaction data
+  - Check block difficulty and nonce
+
+- **Peer Verification**
+  - Compare block hash with other nodes
+  - Verify previous block hash links
+  - Check Merkle root consistency
+  - Validate transaction content
+  - Monitor difficulty adjustments
+
+### 2. Implementation Details
+- **Verification Process**
+  - Local verification runs on new blocks
+  - Peer verification occurs during chain sync
+  - Verification results include hash and Merkle root checks
+  - Any false result indicates potential tampering
+
+- **Error Handling**
+  - Log verification failures
+  - Alert on potential tampering
+  - Provide detailed error reports
