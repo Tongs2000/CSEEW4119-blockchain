@@ -1,3 +1,11 @@
+import os
+import sys
+import argparse
+
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(project_root)
+
 from flask import Flask, request, jsonify
 from src.blockchain.chain import Blockchain
 from src.blockchain.block import Block
@@ -10,6 +18,15 @@ app = Flask(__name__)
 blockchain = Blockchain()
 peers = set()
 HOST = 'localhost'
+
+# Parse command line arguments first
+parser = argparse.ArgumentParser(description='Start blockchain client node')
+parser.add_argument('--port', type=int, help='Port to run the client on')
+args = parser.parse_args()
+
+# Set port from command line argument if provided
+if args.port:
+    os.environ['PORT'] = str(args.port)
 
 def get_port():
     """Get port from environment variable or default to 5001"""
