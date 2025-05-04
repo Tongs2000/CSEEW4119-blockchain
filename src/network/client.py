@@ -518,6 +518,75 @@ def verify_block():
         'peer_verification': peer_results
     }), 200
 
+@app.route('/verify_transaction', methods=['GET'])
+def verify_transaction():
+    """
+    Verify if a specific transaction in a block has been modified
+    
+    Query parameters:
+    - block_index: int  # Index of the block
+    - tx_index: int     # Index of the transaction
+    
+    Returns:
+        JSON response with verification results including:
+        - Local verification results
+        - Peer verification results
+    """
+    try:
+        block_index = request.args.get('block_index', type=int)
+        tx_index = request.args.get('tx_index', type=int)
+        
+        if block_index is None or tx_index is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'Missing required parameters: block_index and tx_index'
+            }), 400
+            
+        if block_index >= len(blockchain.chain):
+            return jsonify({
+                'status': 'error',
+                'message': f'Block index {block_index} out of range'
+            }), 400
+            
+        block = blockchain.chain[block_index]
+        verification_result = block.verify_transaction(tx_index)
+        
+        # Add verification results from peers
+        peer_results = {}
+        for peer in peers:
+            if peer == get_base_url():
+                continue
+            try:
+                resp = requests.get(
+                    f"{peer}/verify_transaction",
+                    params={'block_index': block_index, 'tx_index': tx_index},
+                    timeout=5
+                )
+                if resp.status_code == 200:
+                    peer_results[peer] = resp.json()
+            except Exception as e:
+                peer_results[peer] = {'error': str(e)}
+        
+        return jsonify({
+            'status': 'success',
+            'block_index': block_index,
+            'tx_index': tx_index,
+            'verification': verification_result,
+            'peer_verification': peer_results
+        })
+        
+    except IndexError as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        client_logger.error(f"Error verifying transaction: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
 def main():
     """
     Main function to start client node.

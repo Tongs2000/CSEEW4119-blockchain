@@ -1,7 +1,7 @@
 import hashlib
 import json
 import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 def hash_pair(a: str, b: str) -> str:
     """
@@ -190,3 +190,85 @@ class Block:
         block.nonce = data["nonce"]
         block.merkle_root = data.get("merkle_root", '0' * 64)
         return block 
+
+    def verify_transaction(self, tx_index: int) -> Dict[str, Any]:
+        """
+        Verify if a specific transaction has been modified using Merkle Proof
+        
+        Args:
+            tx_index: Index of the transaction to verify
+            
+        Returns:
+            Dict containing:
+            - is_valid: Whether the transaction is valid
+            - tx_hash: Current hash of the transaction
+            - proof: Merkle proof for verification
+            - merkle_root: Current Merkle root
+        """
+        if tx_index >= len(self.transactions):
+            raise IndexError("Transaction index out of range")
+            
+        # Calculate current transaction hash
+        current_tx_hash = hashlib.sha256(
+            json.dumps(self.transactions[tx_index], sort_keys=True).encode()
+        ).hexdigest()
+        
+        # Get Merkle proof for this transaction
+        proof = self._get_merkle_proof(tx_index)
+        
+        # Verify using Merkle proof
+        computed_root = current_tx_hash
+        for sibling_hash, is_right in proof:
+            if is_right:
+                computed_root = hashlib.sha256((computed_root + sibling_hash).encode()).hexdigest()
+            else:
+                computed_root = hashlib.sha256((sibling_hash + computed_root).encode()).hexdigest()
+        
+        return {
+            'is_valid': computed_root == self.merkle_root,
+            'tx_hash': current_tx_hash,
+            'proof': proof,
+            'merkle_root': self.merkle_root,
+            'computed_root': computed_root,
+            'transaction': self.transactions[tx_index]
+        }
+
+    def _get_merkle_proof(self, tx_index: int) -> List[Tuple[str, bool]]:
+        """
+        Get Merkle proof for a specific transaction
+        
+        Args:
+            tx_index: Index of the transaction
+            
+        Returns:
+            List of (hash, is_right) tuples representing the Merkle proof
+        """
+        # Calculate all transaction hashes
+        tx_hashes = [
+            hashlib.sha256(json.dumps(tx, sort_keys=True).encode()).hexdigest()
+            for tx in self.transactions
+        ]
+        
+        # Generate Merkle proof
+        proof = []
+        current_index = tx_index
+        
+        while len(tx_hashes) > 1:
+            if current_index % 2 == 0:
+                # Current node is left child
+                if current_index + 1 < len(tx_hashes):
+                    proof.append((tx_hashes[current_index + 1], True))
+            else:
+                # Current node is right child
+                proof.append((tx_hashes[current_index - 1], False))
+            
+            # Move up one level
+            new_hashes = []
+            for i in range(0, len(tx_hashes), 2):
+                left = tx_hashes[i]
+                right = tx_hashes[i+1] if i+1 < len(tx_hashes) else left
+                new_hashes.append(hash_pair(left, right))
+            tx_hashes = new_hashes
+            current_index = current_index // 2
+        
+        return proof 
