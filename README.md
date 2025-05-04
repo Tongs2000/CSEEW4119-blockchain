@@ -1,38 +1,24 @@
-# Blockchain Voting System
+# Blockchain-based Voting System
 
-A simplified peer-to-peer blockchain system with voting functionality.
+A decentralized voting system built on blockchain technology, ensuring transparency, immutability, and security in the voting process.
 
 ## Features
 
-- **Blockchain Core**
-  - Proof of Work consensus
-  - Merkle tree for transaction verification
-  - Dynamic difficulty adjustment
-  - P2P network synchronization
+- Decentralized architecture
+- Secure blockchain-based vote storage
+- Real-time vote verification
+- Tamper-evident vote records
+- Distributed consensus mechanism
+- Automatic difficulty adjustment
+- Fork resolution
+- Peer synchronization
 
-- **Voting System**
-  - Secure vote submission
-  - Real-time vote counting
-  - Voter participation tracking
-  - Vote statistics and analytics
+## Prerequisites
 
-- **Network**
-  - Tracker-based peer discovery
-  - Automatic chain synchronization
-  - Heartbeat mechanism
-  - Fork resolution
-
-## Project Structure
-
-```
-.
-├── src/
-│   ├── blockchain/     # Core blockchain implementation
-│   ├── network/        # Network and API implementation
-│   └── utils/          # Utility functions
-├── docs/              # Documentation
-├── logs/              # Log files
-```
+- Python 3.8+
+- Flask
+- requests
+- cryptography
 
 ## Installation
 
@@ -51,29 +37,78 @@ pip install -r requirements.txt
 
 1. Start the tracker server:
 ```bash
-python src/network/tracker.py --port 6000
+python -m src.network.tracker --port 6000
 ```
 
 2. Start client nodes (in separate terminals):
 ```bash
-python src/network/client.py --port 5001
+# First client
+python -m src.network.client --port 5001
+
+# Second client
+python -m src.network.client --port 5002
+
+# Third client
+python -m src.network.client --port 5003
 ```
+
+## API Endpoints
+
+### Tracker Server (Port 6000)
+
+- `POST /register`: Register a new client node
+- `POST /unregister`: Unregister a client node
+- `POST /heartbeat`: Update client node status
+- `GET /peers`: Get list of all peers
+
+### Client Nodes
+
+- `POST /vote`: Submit a new vote
+- `GET /votes`: Get all votes
+- `GET /chain`: Get the blockchain
+- `POST /mine`: Mine pending transactions
+- `GET /verify_block`: Verify block integrity
+- `POST /edit_block`: Edit block content (for testing)
+- `GET /mining_params`: Get current mining parameters
+- `POST /mining_params`: Update mining parameters
+
+## Testing
+
+Run the test suite:
 ```bash
-python src/network/client.py --port 5002
-```
-```bash
-python src/network/client.py --port 5003
+python -m pytest tests/
 ```
 
-## API Documentation
+## Project Structure
 
-See [API.md](docs/API.md) for detailed API documentation.
+```
+blockchain-voting/
+├── src/
+│   ├── blockchain/
+│   │   ├── block.py
+│   │   └── chain.py
+│   ├── network/
+│   │   ├── client.py
+│   │   ├── tracker.py
+│   │   └── voting.py
+│   └── utils/
+│       └── logger.py
+├── tests/
+│   ├── test_block.py
+│   ├── test_chain.py
+│   └── test_voting.py
+├── requirements.txt
+└── README.md
+```
 
+## Contributing
 
-## Design
-
-See [DESIGN.md](docs/DESIGN.md) for system design details.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
 
-MIT License
+This project is licensed under the MIT License - see the LICENSE file for details.
