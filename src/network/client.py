@@ -32,6 +32,10 @@ args = parser.parse_args()
 if args.port:
     os.environ['PORT'] = str(args.port)
 
+if args.port:
+    os.environ['HOST'] = str(args.host)
+
+
 # Set tracker URL from command line argument
 TRACKER_URL = args.tracker_url
 
