@@ -126,6 +126,8 @@ def receive_block():
 
     try:
         new_block = Block.from_dict(block_data)
+        # Preserve the original difficulty from the received block
+        new_block.difficulty = block_data.get('difficulty', new_block.difficulty)
     except Exception as e:
         client_logger.error(f"Invalid block format: {e}")
         return jsonify({'status': 'rejected', 'reason': f'invalid_format: {e}'}), 400
