@@ -32,9 +32,8 @@ args = parser.parse_args()
 if args.port:
     os.environ['PORT'] = str(args.port)
 
-if args.port:
-    os.environ['HOST'] = str(args.host)
-
+# Set host from command line argument
+os.environ['HOST'] = str(args.host)
 
 # Set tracker URL from command line argument
 TRACKER_URL = args.tracker_url
@@ -43,9 +42,13 @@ def get_port():
     """Get port from environment variable or default to 5001"""
     return int(os.getenv('PORT', 5001))
 
+def get_host():
+    """Get host from environment variable or default to localhost"""
+    return os.getenv('HOST', 'localhost')
+
 def get_base_url():
     """Get base URL using current port"""
-    return f'http://{HOST}:{get_port()}'
+    return f'http://{get_host()}:{get_port()}'
 
 # seconds between heartbeats to tracker
 HEARTBEAT_INTERVAL = 30
