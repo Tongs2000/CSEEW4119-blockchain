@@ -3,6 +3,7 @@ import threading
 import time
 from typing import Dict
 import os
+import argparse
 from src.utils.logger import setup_logger
 
 app = Flask(__name__)
@@ -19,8 +20,15 @@ HEARTBEAT_TIMEOUT = 120
 CLEANUP_INTERVAL = 60
 HOST = 'localhost'
 
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Start blockchain tracker server')
+parser.add_argument('--port', type=int, help='Port to run the tracker on')
+args = parser.parse_args()
+
 def get_port():
-    """Get port from environment variable or default to 6000"""
+    """Get port from command line argument, environment variable, or default to 6000"""
+    if args.port:
+        return args.port
     return int(os.getenv('PORT', 6000))
 
 def get_base_url():
