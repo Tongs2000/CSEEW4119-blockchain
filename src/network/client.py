@@ -15,6 +15,10 @@ from src.network.voting import setup_voting_routes
 from typing import List, Dict, Any
 
 app = Flask(__name__)
+
+from flask_cors import CORS
+CORS(app)
+
 blockchain = Blockchain()
 peers = set()
 HOST = 'localhost'
