@@ -1,103 +1,88 @@
 # Blockchain-based Voting System
 
-A decentralized voting system built on blockchain technology, ensuring transparency, immutability, and security in the voting process.
+A decentralized voting system built on blockchain technology, ensuring transparency, immutability, and security in the voting process. This course project **fulfills all required and bonus features**, including full peer-to-peer functionality, demo application, and advanced blockchain capabilities.
 
-## Features
+## ✅ Completed Requirements
 
-- Decentralized architecture
-- Secure blockchain-based vote storage
-- Real-time vote verification
-- Tamper-evident vote records
-- Distributed consensus mechanism
-- Automatic difficulty adjustment
-- Fork resolution
-- Peer synchronization
+* Full peer-to-peer network with **1 tracker** and **3+ client nodes** on **Google Cloud VMs**
+* Tracker maintains and broadcasts peer list updates
+* Each peer:
 
-## Prerequisites
+  * Maintains its own copy of the blockchain
+  * Mines blocks and broadcasts them to others
+  * Verifies incoming blocks and resolves forks
+* Demo application: **Decentralized Voting System**
+* Tamper detection using hash validation and Merkle proof
+* ✅ Bonus Features:
 
-- Python 3.8+
-- Flask
-- requests
+  * Frontend web UI
+  * Dynamic mining difficulty based on performance
+  * Multiple transactions per block
+  * Merkle tree for transaction-level verification
 
-## Installation
-
-1. Clone the repository:
-```bash
-git clone [repository-url]
-cd blockchain-voting-system
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-## Running the System
-
-1. Start the tracker server:
-```bash
-python -m src.network.tracker --port 6000
-```
-
-2. Start client nodes (in separate terminals):
-```bash
-# First client
-python -m src.network.client --port 5001
-
-# Second client
-python -m src.network.client --port 5002
-
-# Third client
-python -m src.network.client --port 5003
-```
-
-## API Endpoints
-
-### Tracker Server (Port 6000)
-
-- `POST /register`: Register a new client node
-- `POST /unregister`: Unregister a client node
-- `POST /heartbeat`: Update client node status
-- `GET /peers`: Get list of all peers
-
-### Client Nodes
-
-- `POST /vote`: Submit a new vote
-- `GET /votes`: Get all votes
-- `GET /chain`: Get the blockchain
-- `POST /mine`: Mine pending transactions
-- `GET /verify_block`: Verify block integrity
-- `POST /edit_block`: Edit block content (for testing)
-- `GET /mining_params`: Get current mining parameters
-- `POST /mining_params`: Update mining parameters
-
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 blockchain-voting/
-├── src/
-│   ├── blockchain/
-│   │   ├── block.py
-│   │   └── chain.py
-│   ├── network/
-│   │   ├── client.py
-│   │   ├── tracker.py
-│   │   └── voting.py
-│   └── utils/
-│       └── logger.py
-├── requirements.txt
-└── README.md
+├── block-backend/                  # Backend implementation
+│   ├── src/
+│   │   ├── blockchain/
+│   │   │   ├── block.py
+│   │   │   └── chain.py
+│   │   ├── network/
+│   │   │   ├── client.py
+│   │   │   ├── tracker.py
+│   │   │   └── voting.py
+│   │   └── utils/
+│   │       └── logger.py
+│   ├── requirements.txt
+│   └── README.md
+├── blockchain-frontend/           # Frontend web UI
+├── DESIGN.md                      # System architecture and diagrams
+├── TESTING.md                     # Deployment and validation records
+└── README.md                      # This file
 ```
 
-## Contributing
+## 🚀 Running on Google Cloud VMs
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+### 1. Tracker (run on one VM)
 
-## License
+```bash
+cd block-backend
+pip install -r requirements.txt
+python -m src.network.tracker --port 6000
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### 2. Clients (run on other VMs)
+
+```bash
+cd block-backend
+pip install -r requirements.txt
+python -m src.network.client --tracker-url http://<TRACKER_VM_EXTERNAL_IP>:6000
+```
+
+Each client runs on a separate VM and automatically joins the network using the tracker URL.
+
+## 📡 API Overview
+
+### Tracker (`:6000`)
+
+* `POST /register` — Add a new peer
+* `POST /unregister` — Remove a peer
+* `POST /heartbeat` — Keep-alive ping
+* `GET /peers` — Fetch current peer list
+
+### Client
+
+* `POST /vote` — Submit a vote
+* `GET /votes` — View all votes
+* `GET /chain` — Retrieve blockchain
+* `POST /mine` — Mine new block
+* `GET /verify_block` — Check block integrity
+* `POST /edit_block` — Modify block (for testing)
+* `GET /mining_params` / `POST /mining_params` — View or update mining settings
+* `GET /verify_transaction` — Verify specific transaction integrity
+* `GET /verify_transaction_internal` — Internal endpoint for transaction verification
+* `POST /edit_transaction_only` — Edit transaction without hash recalculation (for testing)
+* `GET /peers` — Get list of connected peers
+* `POST /transaction` — Add new transaction to pending pool
