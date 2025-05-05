@@ -22,11 +22,16 @@ HOST = 'localhost'
 # Parse command line arguments first
 parser = argparse.ArgumentParser(description='Start blockchain client node')
 parser.add_argument('--port', type=int, help='Port to run the client on')
+parser.add_argument('--tracker-url', type=str, default='http://localhost:6000',
+                    help='URL of the tracker server (default: http://localhost:6000)')
 args = parser.parse_args()
 
 # Set port from command line argument if provided
 if args.port:
     os.environ['PORT'] = str(args.port)
+
+# Set tracker URL from command line argument
+TRACKER_URL = args.tracker_url
 
 def get_port():
     """Get port from environment variable or default to 5001"""
@@ -38,7 +43,6 @@ def get_base_url():
 
 # seconds between heartbeats to tracker
 HEARTBEAT_INTERVAL = 30
-TRACKER_URL = 'http://localhost:6000'
 mining_params = {
     "difficulty": 4,
     "target_block_time": 60,
