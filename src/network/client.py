@@ -40,7 +40,7 @@ def get_base_url():
 HEARTBEAT_INTERVAL = 30
 TRACKER_URL = 'http://localhost:6000'
 mining_params = {
-    "difficulty": 1,
+    "difficulty": 4,
     "target_block_time": 60,
     "adjustment_interval": 10,
     "time_tolerance": 0.1
@@ -245,6 +245,7 @@ def mining_params_endpoint():
                 difficulty = int(data['difficulty'])
                 if 1 <= difficulty <= 10:
                     mining_params['difficulty'] = difficulty
+                    blockchain.difficulty = difficulty  # Update blockchain difficulty
                 else:
                     client_logger.warning(f"Invalid difficulty value: {difficulty}")
                     return jsonify({'status': 'error', 'message': 'Difficulty must be between 1 and 10'}), 400
@@ -253,6 +254,7 @@ def mining_params_endpoint():
                 target_time = float(data['target_block_time'])
                 if target_time > 0:
                     mining_params['target_block_time'] = target_time
+                    blockchain.target_block_time = target_time  # Update blockchain target time
                 else:
                     client_logger.warning(f"Invalid target block time: {target_time}")
                     return jsonify({'status': 'error', 'message': 'Target block time must be positive'}), 400
@@ -261,6 +263,7 @@ def mining_params_endpoint():
                 interval = int(data['adjustment_interval'])
                 if interval > 0:
                     mining_params['adjustment_interval'] = interval
+                    blockchain.adjustment_interval = interval  # Update blockchain adjustment interval
                 else:
                     client_logger.warning(f"Invalid adjustment interval: {interval}")
                     return jsonify({'status': 'error', 'message': 'Adjustment interval must be positive'}), 400
@@ -269,6 +272,7 @@ def mining_params_endpoint():
                 tolerance = float(data['time_tolerance'])
                 if 0.01 <= tolerance <= 0.5:
                     mining_params['time_tolerance'] = tolerance
+                    blockchain.time_tolerance = tolerance  # Update blockchain time tolerance
                 else:
                     client_logger.warning(f"Invalid time tolerance: {tolerance}")
                     return jsonify({'status': 'error', 'message': 'Time tolerance must be between 0.01 and 0.5'}), 400
@@ -558,7 +562,7 @@ def verify_transaction():
                 continue
             try:
                 resp = requests.get(
-                    f"{peer}/verify_transaction",
+                    f"{peer}/verify_transaction_internal",  # Use internal endpoint
                     params={'block_index': block_index, 'tx_index': tx_index},
                     timeout=5
                 )
@@ -586,6 +590,110 @@ def verify_transaction():
             'status': 'error',
             'message': f'Internal server error: {str(e)}'
         }), 500
+
+@app.route('/verify_transaction_internal', methods=['GET'])
+def verify_transaction_internal():
+    """
+    Internal endpoint to verify a transaction.
+    Only returns local verification result without querying other peers.
+    
+    Query parameters:
+    - block_index: int  # Index of the block
+    - tx_index: int     # Index of the transaction
+    
+    Returns:
+        JSON response with only local verification result
+    """
+    try:
+        block_index = request.args.get('block_index', type=int)
+        tx_index = request.args.get('tx_index', type=int)
+        
+        if block_index is None or tx_index is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'Missing required parameters: block_index and tx_index'
+            }), 400
+            
+        if block_index >= len(blockchain.chain):
+            return jsonify({
+                'status': 'error',
+                'message': f'Block index {block_index} out of range'
+            }), 400
+            
+        block = blockchain.chain[block_index]
+        verification_result = block.verify_transaction(tx_index)
+        
+        return jsonify({
+            'status': 'success',
+            'block_index': block_index,
+            'tx_index': tx_index,
+            'verification': verification_result
+        })
+        
+    except IndexError as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+    except Exception as e:
+        client_logger.error(f"Error verifying transaction: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+@app.route('/edit_transaction_only', methods=['POST'])
+def edit_transaction_only():
+    """
+    Edit transaction content without recalculating hash and merkle root.
+    This is for testing purposes to simulate transaction tampering.
+    
+    Request body:
+    {
+        "block_index": int,  # Index of block to edit
+        "transaction_index": int,  # Index of transaction to modify
+        "field": str,  # Field to modify in transaction
+        "new_value": any  # New value to set
+    }
+    
+    Returns:
+        JSON response with status and modified block
+    """
+    data = request.get_json()
+    if not data or 'block_index' not in data or 'transaction_index' not in data:
+        return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
+        
+    block_index = data['block_index']
+    tx_index = data['transaction_index']
+    
+    if block_index >= len(blockchain.chain):
+        return jsonify({'status': 'error', 'message': 'Block index out of range'}), 400
+        
+    block = blockchain.chain[block_index]
+    try:
+        # Store original transaction
+        original_tx = block.transactions[tx_index].copy()
+        
+        # Modify transaction
+        if 'field' in data and 'new_value' in data:
+            block.transactions[tx_index][data['field']] = data['new_value']
+        elif 'new_transaction' in data:
+            block.transactions[tx_index] = data['new_transaction']
+        else:
+            return jsonify({'status': 'error', 'message': 'No modification specified'}), 400
+        
+        client_logger.info(f"Block {block_index} transaction {tx_index} edited without hash recalculation")
+        return jsonify({
+            'status': 'success',
+            'message': 'Transaction edited successfully without hash recalculation',
+            'block': block.to_dict(),
+            'original_transaction': original_tx
+        }), 200
+    except IndexError as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+    except Exception as e:
+        client_logger.error(f"Error editing transaction: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 def main():
     """

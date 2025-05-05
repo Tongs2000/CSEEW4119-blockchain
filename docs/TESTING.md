@@ -269,44 +269,18 @@
   - **Expected Result**: System handles large data
   - **Actual Result**: System handles large data
 
-## 9. Test Tools
+## 9. Test Environment
 
-### 9.1 Test Scripts
-```bash
-# Run network test
-python tests/network_test.py
-
-# Run blockchain test
-python tests/blockchain_test.py
-
-# Run voting system test
-python tests/voting_test.py
-
-# Run API test
-python tests/api_test.py
-
-# Run performance test
-python tests/performance_test.py
-```
-
-### 9.2 Test Reports
-- Test results saved in `tests/results/` directory
-- Includes detailed logs and error information
-- Generates HTML format report
-
-## 10. Test Environment
-
-### 10.1 Hardware Requirements
+### 9.1 Hardware Requirements
 - CPU: 4 cores or more
 - Memory: 8GB or more
 - Storage: 100GB or more
 
-### 10.2 Software Requirements
+### 9.2 Software Requirements
 - Python 3.8+
 - Dependencies listed in requirements.txt
-- Test framework: pytest
 
-### 10.3 Network Requirements
+### 9.3 Network Requirements
 - Stable network connection
 - Enough bandwidth
 - Low latency 

@@ -18,7 +18,6 @@ A decentralized voting system built on blockchain technology, ensuring transpare
 - Python 3.8+
 - Flask
 - requests
-- cryptography
 
 ## Installation
 
@@ -72,12 +71,6 @@ python -m src.network.client --port 5003
 - `GET /mining_params`: Get current mining parameters
 - `POST /mining_params`: Update mining parameters
 
-## Testing
-
-Run the test suite:
-```bash
-python -m pytest tests/
-```
 
 ## Project Structure
 
@@ -93,10 +86,6 @@ blockchain-voting/
 │   │   └── voting.py
 │   └── utils/
 │       └── logger.py
-├── tests/
-│   ├── test_block.py
-│   ├── test_chain.py
-│   └── test_voting.py
 ├── requirements.txt
 └── README.md
 ```
