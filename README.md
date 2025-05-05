@@ -4,27 +4,29 @@ A decentralized voting system built on blockchain technology, ensuring transpare
 
 ## ✅ Completed Requirements
 
-* Full peer-to-peer network with **1 tracker** and **3+ client nodes** on **Google Cloud VMs**
-* Tracker maintains and broadcasts peer list updates
-* Each peer:
+- Peer-to-peer network with **1 tracker** and **3+ client nodes**, all running on **Google Cloud VMs**
+- Tracker maintains and synchronizes a live peer list
+- Each peer node:
+  - Maintains an up-to-date local blockchain
+  - Mines new blocks and broadcasts them
+  - Verifies and accepts blocks from others
+  - Resolves forks when multiple valid branches exist
+- Demo application: **Blockchain-based Voting System**
+- Protection against tampering using **hash verification** and **Merkle tree proofs**
 
-  * Maintains its own copy of the blockchain
-  * Mines blocks and broadcasts them to others
-  * Verifies incoming blocks and resolves forks
-* Demo application: **Decentralized Voting System**
-* Tamper detection using hash validation and Merkle proof
-* ✅ Bonus Features:
+### 🔒 Bonus Features Implemented
 
-  * Frontend web UI
-  * Dynamic mining difficulty based on performance
-  * Multiple transactions per block
-  * Merkle tree for transaction-level verification
+- Interactive **frontend UI** for voting, exploration, and management
+- **Dynamic mining difficulty** based on block times
+- **Merkle Tree** verification for individual transactions
+- Support for **multiple transactions per block**
 
 ## 🏗️ Project Structure
 
 ```
+
 blockchain-voting/
-├── block-backend/                  # Backend implementation
+├── block-backend/                  # Backend system (tracker, peers, blockchain logic)
 │   ├── src/
 │   │   ├── blockchain/
 │   │   │   ├── block.py
@@ -39,21 +41,22 @@ blockchain-voting/
 │   └── README.md
 ├── blockchain-frontend/           # Frontend web UI
 ├── DESIGN.md                      # System architecture and diagrams
-├── TESTING.md                     # Deployment and validation records
+├── TESTING.md                     # GCP deployment setup and testing process
 └── README.md                      # This file
-```
+
+````
 
 ## 🚀 Running on Google Cloud VMs
 
-### 1. Tracker (run on one VM)
+### 1. Tracker (run on one GCP VM)
 
 ```bash
 cd block-backend
 pip install -r requirements.txt
 python -m src.network.tracker --port 6000
-```
+````
 
-### 2. Clients (run on other VMs)
+### 2. Client Nodes (run on other GCP VMs)
 
 ```bash
 cd block-backend
@@ -61,7 +64,7 @@ pip install -r requirements.txt
 python -m src.network.client --tracker-url http://<TRACKER_VM_EXTERNAL_IP>:6000
 ```
 
-Each client runs on a separate VM and automatically joins the network using the tracker URL.
+Each peer runs on a separate VM and communicates via the tracker.
 
 ## 📡 API Overview
 
@@ -86,3 +89,107 @@ Each client runs on a separate VM and automatically joins the network using the 
 * `POST /edit_transaction_only` — Edit transaction without hash recalculation (for testing)
 * `GET /peers` — Get list of connected peers
 * `POST /transaction` — Add new transaction to pending pool
+
+---
+
+## 🌐 Frontend UI Setup and Usage
+
+The frontend interface is located in the `blockchain-frontend/` folder. It provides a user-friendly web interface to interact with the blockchain system and supports all major functionalities including voting, exploring blocks, managing transactions, and node configuration.
+
+### Prerequisites
+
+* Node.js (via `nvm`)
+
+```bash
+nvm install 18
+nvm use 18
+```
+
+* Ensure you have `npm` installed (comes with Node.js)
+
+### Configuration (Important)
+
+Before running the frontend, update the tracker proxy destination in:
+
+```bash
+blockchain-frontend/next.config.mjs
+```
+
+Locate the `rewrites()` configuration and modify the following entry:
+
+```js
+{
+  source: "/tracker/:path*",
+  destination: "http://127.0.0.1:6000/:path*",
+}
+```
+
+⬇️ Change `127.0.0.1` to the **external IP of your tracker VM**, for example:
+
+```js
+{
+  source: "/tracker/:path*",
+  destination: "http://34.123.45.67:6000/:path*",
+}
+```
+
+This ensures the frontend can route requests to the tracker server deployed on GCP.
+
+### Running the Frontend
+
+You can run the frontend from **any of the client VMs** (or locally if needed):
+
+```bash
+cd blockchain-frontend
+npm install
+npm run dev
+```
+
+This will start the web interface at `http://localhost:3000/` by default. Use external IP instead when using external browser.
+
+---
+
+### UI Overview
+
+* **Dashboard**
+  ![Dashboard Overview](./images/1-dashboard.png)
+  * Displays system parameters and blockchain status
+  * Shows real-time blockchain height, mining difficulty, and node status
+
+* **Voting**
+  ![Voting Interface](./images/2-voting.png)
+  * Enter voter name and select candidate to cast vote
+  * Vote records are stored in pending transactions
+  * Click mine button to connect block to chain when pending transactions reach threshold
+  * Automatically updates and tallies voting results
+
+* **Blockchain Explorer - Overview**
+  ![Blockchain Overview](./images/3-explorers.png)
+  * Shows overall blockchain status
+  * Displays basic information of all blocks
+  * Click any block to view detailed information
+
+* **Blockchain Explorer - Block Details**
+  ![Block Details](./images/4-block_details.png)
+  * Shows detailed content of selected block
+  * Provides verify block and verify transaction functionality
+  * Validates individual transaction records and entire block integrity
+  * Detects any block tampering
+
+* **Blockchain Explorer - Verification**
+  ![Block Verification](./images/5-verification.png)
+  * Provides block and transaction verification features
+  * Supports Merkle tree verification
+  * Ensures data integrity and immutability
+
+* **Transaction Management**
+  ![Transaction Interface](./images/6-transactions.png)
+  * Manually add new transaction records
+  * Displays all pending transactions
+  * Manages transaction pool
+
+* **System Settings**
+  ![System Settings](./images/7-settings.png)
+  * Switch between different backend nodes
+  * Adjust mining difficulty and other parameters
+  * Configure system runtime parameters

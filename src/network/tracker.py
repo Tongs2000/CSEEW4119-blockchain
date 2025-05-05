@@ -6,6 +6,10 @@ import os
 from src.utils.logger import setup_logger
 
 app = Flask(__name__)
+
+from flask_cors import CORS
+CORS(app)
+
 lock = threading.Lock()
 # Store peer address -> last heartbeat timestamp
 peers_heartbeat: Dict[str, float] = {}

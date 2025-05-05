@@ -99,6 +99,91 @@
   - **Expected Result**: Invalid block rejected
   - **Actual Result**: Block rejected due to invalid hash
 
+### 2.4 Merkle Tree Verification
+- **Test Case**: Empty transaction Merkle tree
+  - **Steps**:
+    1. Create block with no transactions
+    2. Verify Merkle root
+  - **Expected Result**: Default Merkle root (64 zeros)
+  - **Actual Result**: Merkle root verified correctly
+
+- **Test Case**: Single transaction Merkle tree
+  - **Steps**:
+    1. Create block with one transaction
+    2. Verify Merkle root
+  - **Expected Result**: Merkle root matches transaction hash
+  - **Actual Result**: Merkle root verified correctly
+
+- **Test Case**: Multiple transactions Merkle tree
+  - **Steps**:
+    1. Create block with multiple transactions
+    2. Verify Merkle tree construction
+  - **Expected Result**: Correct Merkle tree levels and root
+  - **Actual Result**: Merkle tree structure verified
+
+- **Test Case**: Odd number of transactions
+  - **Steps**:
+    1. Create block with odd number of transactions
+    2. Verify last transaction duplication
+  - **Expected Result**: Last transaction duplicated in tree
+  - **Actual Result**: Tree structure maintained correctly
+
+### 2.5 Transaction Verification
+- **Test Case**: Valid transaction verification
+  - **Steps**:
+    1. Add transaction to block
+    2. Verify transaction integrity
+  - **Expected Result**: Transaction verified as valid
+  - **Actual Result**: Verification successful
+
+- **Test Case**: Modified transaction detection
+  - **Steps**:
+    1. Add transaction to block
+    2. Modify transaction
+    3. Verify transaction
+  - **Expected Result**: Modification detected
+  - **Actual Result**: Modified transaction identified
+
+- **Test Case**: Verification path construction
+  - **Steps**:
+    1. Add multiple transactions
+    2. Verify specific transaction
+    3. Check verification path
+  - **Expected Result**: Correct path to root
+  - **Actual Result**: Path constructed correctly
+
+### 2.6 Work Calculation
+- **Test Case**: Chain work calculation
+  - **Steps**:
+    1. Create multiple blocks
+    2. Calculate total work
+  - **Expected Result**: Correct work sum
+  - **Actual Result**: Work calculated correctly
+
+- **Test Case**: Work comparison
+  - **Steps**:
+    1. Create two chains
+    2. Compare work values
+  - **Expected Result**: Correct work comparison
+  - **Actual Result**: Chains compared correctly
+
+### 2.7 Transaction Recovery
+- **Test Case**: Fork transaction preservation
+  - **Steps**:
+    1. Create fork with transactions
+    2. Switch to other chain
+    3. Check transaction pool
+  - **Expected Result**: Transactions preserved in pool
+  - **Actual Result**: Transactions recovered correctly
+
+- **Test Case**: Multiple fork recovery
+  - **Steps**:
+    1. Create multiple forks
+    2. Switch chains multiple times
+    3. Verify transaction preservation
+  - **Expected Result**: All transactions preserved
+  - **Actual Result**: Transactions maintained correctly
+
 ## 3. API Testing
 
 ### 3.1 Block Editing API
