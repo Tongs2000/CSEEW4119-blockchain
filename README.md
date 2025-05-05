@@ -23,8 +23,7 @@ A decentralized voting system built on blockchain technology, ensuring transpare
 
 ## 🏗️ Project Structure
 
-```
-
+```bash
 blockchain-voting/
 ├── block-backend/                  # Backend system (tracker, peers, blockchain logic)
 │   ├── src/
@@ -43,8 +42,7 @@ blockchain-voting/
 ├── DESIGN.md                      # System architecture and diagrams
 ├── TESTING.md                     # GCP deployment setup and testing process
 └── README.md                      # This file
-
-````
+```
 
 ## 🚀 Running on Google Cloud VMs
 
@@ -54,7 +52,7 @@ blockchain-voting/
 cd block-backend
 pip install -r requirements.txt
 python -m src.network.tracker --port 6000
-````
+```
 
 ### 2. Client Nodes (run on other GCP VMs)
 
