@@ -553,9 +553,8 @@ def verify_block():
     # Check if hash meets difficulty requirement
     prefix = '0' * blockchain.difficulty
     if not block.hash.startswith(prefix):
-        local_verification['valid'] = False
-        local_verification['reason'] = f'Hash does not meet difficulty requirement (should start with {blockchain.difficulty} zeros)'
-    
+        local_verification['hash_ok'] = False
+
     return jsonify({
         'status': 'success',
         'block_index': block_index,
