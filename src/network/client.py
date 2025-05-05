@@ -57,10 +57,10 @@ def get_base_url():
 # seconds between heartbeats to tracker
 HEARTBEAT_INTERVAL = 30
 mining_params = {
-    "difficulty": 4,
-    "target_block_time": 60,
-    "adjustment_interval": 10,
-    "time_tolerance": 0.1
+    "difficulty": blockchain.difficulty,
+    "target_block_time": blockchain.target_block_time,
+    "adjustment_interval": blockchain.adjustment_interval,
+    "time_tolerance": blockchain.time_tolerance
 }
 
 # Create logger with port information
@@ -271,6 +271,11 @@ def mining_params_endpoint():
     """
     if request.method == 'GET':
         client_logger.debug("Mining parameters requested")
+        # Sync mining_params with blockchain values
+        mining_params['difficulty'] = blockchain.difficulty
+        mining_params['target_block_time'] = blockchain.target_block_time
+        mining_params['adjustment_interval'] = blockchain.adjustment_interval
+        mining_params['time_tolerance'] = blockchain.time_tolerance
         return jsonify(mining_params), 200
     
     elif request.method == 'POST':
