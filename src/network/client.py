@@ -141,8 +141,17 @@ def receive_block():
                 temp_block = new_block
                 
                 if other_chain.is_chain_valid() and len(other_chain.chain) > len(blockchain.chain):
+                    # Save transactions from the last block of current chain
+                    discarded_txs = blockchain.chain[-1].transactions
+                    # Switch to the longer chain
                     blockchain.chain = other_chain.chain
                     client_logger.info(f"Replaced local chain with longer one from {peer}")
+                    # Return discarded transactions to the pending transaction pool
+                    for tx in discarded_txs:
+                        if tx not in blockchain.pending_transactions:
+                            blockchain.pending_transactions.append(tx)
+                            client_logger.info(f"Returned discarded transaction to pool: {tx}")
+                    
                     if temp_block.previous_hash == blockchain.get_latest_block().hash:
                         blockchain.chain.append(temp_block)
                         client_logger.info(f"New block added: {temp_block.hash}")
@@ -153,8 +162,17 @@ def receive_block():
                     other_work = sum(int(block.hash, 16) for block in other_chain.chain)
                     
                     if other_work < current_work:
+                        # Save transactions from the last block of current chain
+                        discarded_txs = blockchain.chain[-1].transactions
+                        # Switch to the chain with greater work
                         blockchain.chain = other_chain.chain
                         client_logger.info(f"Replaced local chain with one of equal length but greater work from {peer}")
+                        # Return discarded transactions to the pending transaction pool
+                        for tx in discarded_txs:
+                            if tx not in blockchain.pending_transactions:
+                                blockchain.pending_transactions.append(tx)
+                                client_logger.info(f"Returned discarded transaction to pool: {tx}")
+                        
                         if temp_block.previous_hash == blockchain.get_latest_block().hash:
                             blockchain.chain.append(temp_block)
                             client_logger.info(f"New block added: {temp_block.hash}")
