@@ -65,8 +65,14 @@ class Blockchain:
         
         if avg_time > self.target_block_time * (1 + self.time_tolerance):
             self.difficulty = max(1, self.difficulty - 1)
+            # Update mining_params in client.py
+            from src.network.client import mining_params
+            mining_params['difficulty'] = self.difficulty
         elif avg_time < self.target_block_time * (1 - self.time_tolerance):
             self.difficulty += 1
+            # Update mining_params in client.py
+            from src.network.client import mining_params
+            mining_params['difficulty'] = self.difficulty
             
         self.block_times = []
 
@@ -128,9 +134,9 @@ class Blockchain:
     def verify_linkage(self, index: int) -> Dict[str, Any]:
         """
         Verify the linkage of block at the given index:
-        - previous_link: True if this block’s previous_hash matches the prior block’s hash,
+        - previous_link: True if this block's previous_hash matches the prior block's hash,
                         False if it does not, or None if this is the genesis block
-        - next_link: True if the next block’s previous_hash matches this block’s hash,
+        - next_link: True if the next block's previous_hash matches this block's hash,
                     False if it does not, or None if this is the chain tip
         Returns a dict with 'previous_link' and 'next_link'.
         """
