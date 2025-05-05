@@ -550,6 +550,12 @@ def verify_block():
     block = blockchain.chain[block_index]
     local_verification = block.verify_self()
     
+    # Check if hash meets difficulty requirement
+    prefix = '0' * blockchain.difficulty
+    if not block.hash.startswith(prefix):
+        local_verification['valid'] = False
+        local_verification['reason'] = f'Hash does not meet difficulty requirement (should start with {blockchain.difficulty} zeros)'
+    
     return jsonify({
         'status': 'success',
         'block_index': block_index,
