@@ -189,8 +189,8 @@ def receive_block():
                 continue
         return jsonify({'status': 'rejected', 'reason': 'previous_hash_mismatch'}), 400
 
-    # Validate proof of work
-    prefix = '0' * blockchain.difficulty
+    # Validate proof of work using block's own difficulty
+    prefix = '0' * new_block.difficulty  # 使用区块自己的难度值
     if not new_block.hash.startswith(prefix):
         client_logger.warning(f"Invalid proof of work. Hash: {new_block.hash}, Required prefix: {prefix}")
         return jsonify({'status': 'rejected', 'reason': 'invalid_proof_of_work'}), 400
