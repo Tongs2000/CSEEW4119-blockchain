@@ -8,7 +8,17 @@ from src.utils.logger import setup_logger
 app = Flask(__name__)
 
 from flask_cors import CORS
-CORS(app)
+# Configure CORS to be more permissive
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",  # Allow all origins
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept"],
+        "expose_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "max_age": 3600
+    }
+})
 
 lock = threading.Lock()
 # Store peer address -> last heartbeat timestamp
