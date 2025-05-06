@@ -1,6 +1,97 @@
-# Blockchain-based Voting System
+# Blockchain Voting System
 
-A decentralized voting system built on blockchain technology, ensuring transparency, immutability, and security in the voting process. This course project **fulfills all required and bonus features**, including full peer-to-peer functionality, demo application, and advanced blockchain capabilities.
+A decentralized voting system built on blockchain technology, featuring a peer-to-peer network, proof-of-work consensus, and secure vote verification.
+
+## Features
+
+- Decentralized peer-to-peer network
+- Proof-of-work consensus mechanism
+- Automatic difficulty adjustment
+- Secure vote verification using Merkle trees
+- Real-time vote counting and statistics
+- Fork resolution and chain synchronization
+- Tamper detection and prevention
+
+## Architecture
+
+The system consists of three main components:
+
+1. **Tracker Server**: Manages peer discovery and network coordination
+2. **Client Nodes**: Run the blockchain and handle voting operations
+3. **Frontend**: Web interface for voting and blockchain exploration
+
+## Deployment
+
+### Tracker Server (GCP)
+```bash
+python -m src.network.tracker --port 5001
+```
+
+### Client Nodes (GCP)
+```bash
+python -m src.network.client --tracker-url http://<tracker-ip>:5001 --port 5001 --host <client-ip>
+```
+
+### Frontend (Local)
+1. Navigate to the frontend directory
+2. Install dependencies: `npm install`
+3. Start the development server: `npm start`
+4. Update `context/BlockchainContext.tsx` with your GCP IPs:
+   ```typescript
+   const [nodeUrl, setNodeUrl] = useState("http://<client-ip>:5001");
+   const baseURL = nodeUrl;
+   const trackerURL = "http://<tracker-ip>:5001";
+   ```
+
+## API Endpoints
+
+### Tracker Server
+- `POST /register`: Register a new peer
+- `POST /unregister`: Unregister a peer
+- `POST /heartbeat`: Update peer's last seen timestamp
+- `GET /peers`: Get list of active peers
+
+### Client Nodes
+- `POST /new_block`: Receive and validate new block
+- `POST /transaction`: Add new transaction
+- `POST /mine`: Mine pending transactions
+- `GET /chain`: Get current blockchain
+- `GET/POST /mining_params`: Get or update mining parameters
+- `GET /peers`: Get list of peers
+- `POST /edit_block`: Edit block content (testing)
+- `GET /verify_block`: Verify block integrity
+- `GET /verify_transaction`: Verify transaction integrity
+- `GET /verify_transaction_internal`: Internal transaction verification
+- `POST /edit_transaction_only`: Edit transaction (testing)
+
+### Voting Endpoints
+- `POST /vote`: Submit a new vote
+- `GET /votes`: Get voting results
+- `GET /vote_status`: Get voting status for a user
+- `GET /candidates`: Get list of candidates
+- `GET /voter_stats`: Get voting statistics
+
+## Testing
+
+See [TESTING.md](docs/TESTING.md) for detailed testing procedures and results.
+
+## Requirements
+
+- Python 3.8+
+- Node.js 18+
+- Dependencies listed in requirements.txt
+- GCP VM instances for tracker and clients
+- Local machine for frontend development
+
+## Security Features
+
+- Merkle tree verification
+- Proof-of-work consensus
+- Automatic difficulty adjustment
+- Fork resolution
+- Tamper detection
+- Vote verification
+- Double-voting prevention
 
 ## ✅ Completed Requirements
 
@@ -25,7 +116,7 @@ A decentralized voting system built on blockchain technology, ensuring transpare
 
 ```bash
 blockchain-voting/
-├── block-backend/                  # Backend system (tracker, peers, blockchain logic)
+├── blockchain-backend/                  # Backend system (tracker, peers, blockchain logic)
 │   ├── src/
 │   │   ├── blockchain/
 │   │   │   ├── block.py
@@ -44,108 +135,46 @@ blockchain-voting/
 └── README.md                      # This file
 ```
 
-## 🚀 Running on Google Cloud VMs
-
-### 1. Tracker (run on one GCP VM)
-
-```bash
-cd block-backend
-pip install -r requirements.txt
-python -m src.network.tracker --port 6000
-```
-
-### 2. Client Nodes (run on other GCP VMs)
-
-```bash
-cd block-backend
-pip install -r requirements.txt
-python -m src.network.client --tracker-url http://<TRACKER_VM_EXTERNAL_IP>:6000
-```
-
-Each peer runs on a separate VM and communicates via the tracker.
-
-## 📡 API Overview
-
-### Tracker (`:6000`)
-
-* `POST /register` — Add a new peer
-* `POST /unregister` — Remove a peer
-* `POST /heartbeat` — Keep-alive ping
-* `GET /peers` — Fetch current peer list
-
-### Client
-
-* `POST /vote` — Submit a vote
-* `GET /votes` — View all votes
-* `GET /chain` — Retrieve blockchain
-* `POST /mine` — Mine new block
-* `GET /verify_block` — Check block integrity
-* `POST /edit_block` — Modify block (for testing)
-* `GET /mining_params` / `POST /mining_params` — View or update mining settings
-* `GET /verify_transaction` — Verify specific transaction integrity
-* `GET /verify_transaction_internal` — Internal endpoint for transaction verification
-* `POST /edit_transaction_only` — Edit transaction without hash recalculation (for testing)
-* `GET /peers` — Get list of connected peers
-* `POST /transaction` — Add new transaction to pending pool
-
----
-
 ## 🌐 Frontend UI Setup and Usage
 
 The frontend interface is located in the `blockchain-frontend/` folder. It provides a user-friendly web interface to interact with the blockchain system and supports all major functionalities including voting, exploring blocks, managing transactions, and node configuration.
 
 ### Prerequisites
 
-* Node.js (via `nvm`)
+* Node.js 18+
+* npm (comes with Node.js)
 
-```bash
-nvm install 18
-nvm use 18
+### Configuration
+
+Before running the frontend, update the node configuration in `context/BlockchainContext.tsx`:
+
+```typescript
+const [nodeUrl, setNodeUrl] = useState("http://<client-ip>:5001");
+const baseURL = nodeUrl;
+const trackerURL = "http://<tracker-ip>:5001";
 ```
 
-* Ensure you have `npm` installed (comes with Node.js)
-
-### Configuration (Important)
-
-Before running the frontend, update the tracker proxy destination in:
-
-```bash
-blockchain-frontend/next.config.mjs
-```
-
-Locate the `rewrites()` configuration and modify the following entry:
-
-```js
-{
-  source: "/tracker/:path*",
-  destination: "http://127.0.0.1:6000/:path*",
-}
-```
-
-⬇️ Change `127.0.0.1` to the **external IP of your tracker VM**, for example:
-
-```js
-{
-  source: "/tracker/:path*",
-  destination: "http://34.123.45.67:6000/:path*",
-}
-```
-
-This ensures the frontend can route requests to the tracker server deployed on GCP.
+Replace `<client-ip>` with your GCP client VM's external IP and `<tracker-ip>` with your tracker VM's external IP.
 
 ### Running the Frontend
 
-You can run the frontend from **any of the client VMs** (or locally if needed):
-
+1. Navigate to the frontend directory:
 ```bash
 cd blockchain-frontend
+```
+
+2. Install dependencies:
+```bash
+nvm use 18
 npm install
+```
+
+3. Start the development server:
+```bash
 npm run dev
 ```
 
-This will start the web interface at `http://localhost:3000/` by default. Use external IP instead when using external browser.
-
----
+The frontend will be available at `http://localhost:3000/`.
 
 ### UI Overview
 

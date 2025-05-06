@@ -21,18 +21,12 @@ A decentralized voting system built on blockchain technology, ensuring transpare
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone [repository-url]
-cd blockchain-voting-system
-```
-
-2. Install dependencies:
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the System
+## Running the Local System 
 
 1. Start the tracker server:
 ```bash
@@ -89,15 +83,3 @@ blockchain-voting/
 ├── requirements.txt
 └── README.md
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
